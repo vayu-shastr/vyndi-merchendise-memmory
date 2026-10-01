@@ -5,6 +5,7 @@ import { buildAnnulusMesh, buildCylinderMesh, buildDisplayStandMesh, buildDoveta
 import { alignmentSocketDepth, contourEmbossHeight, dovetailKeyProfile, dovetailSlotDepth, magnetPocketDepth, parseArcAsciiGrid, planTiledMap, pointInsideShape, rasterSampler, sampleArcAsciiGrid, shapeBoundaryRadius, shapeMaxRadius } from "./fabrication-extras-core.mjs?v=3";
 import { adaptiveLargeFormatPlan, classifyTerrainWorkload, clipPolygonToRect, loadGeoTiffArrayBuffer, reconcileGpxElevations, rasterStats } from "./pro-dem-core.mjs?v=2";
 import { projectGeographicOutline, insidePolygons, maskPolygons, buildOutlineHeightfieldMesh, logoFootprint, footprintFits, findEmptyLogoPlacement } from "./map-outline-core.mjs?v=1";
+import { renderProductionMeshPreview as renderProductionMeshPreviewDirect } from "./direct-mesh-preview.mjs?v=1";
 
 const $ = (id) => document.getElementById(id);
 const fields = { event: $("eventSelect"), eventName: $("eventName"), eventDate:$("eventDate"), eventLocation:$("eventLocation"), participant: $("participant"), bib: $("bib"), distance: $("distance"), startDetail:$("startDetail"), finishDetail:$("finishDetail"), elapsedTime:$("elapsedTime"), resultStatus:$("resultStatus"), placing:$("placing"), map: $("mapSelect"), printer: $("printerSelect"), exaggeration: $("exaggeration"), reliefLimit: $("reliefLimit"), waterMode: $("waterMode"), waveHeight: $("waveHeight"), wavelength: $("wavelength"), base: $("base"), routeWidth: $("routeWidth"), routeRise: $("routeRise") };
@@ -38,8 +39,7 @@ function logoUv(x,y,c){
   return {u:.5+(dx*Math.cos(a)+dy*Math.sin(a))/(2*half),v:.5-(-dx*Math.sin(a)+dy*Math.cos(a))*o.aspect/(2*half)};
 }
 const MODEL_VIEWER_LOCAL="/vendor/model-viewer.min.js?v=4.3.1";
-const THREE_VIEWER_LOCAL="/vendor/three-glb-viewer.mjs?v=0.183.0";
-let glbViewerRuntime=null,glbFallbackRuntime=null,glbFallbackCleanup=null;
+let glbViewerRuntime=null,glbFallbackCleanup=null;
 
 async function ensureGlbViewerComponent(){
   if(customElements.get("model-viewer"))return "registered";
@@ -59,127 +59,17 @@ async function ensureGlbViewerComponent(){
 
 async function renderProductionMeshPreview(mesh,materials,modelWidthMm=101.6){
   if(!glbFallbackCanvas)return false;
-  const canvas=glbFallbackCanvas;
-  canvas.dataset.renderState="loading";
-  canvas.dataset.renderError="";
   if(glbFallbackCleanup){try{glbFallbackCleanup()}catch{}glbFallbackCleanup=null}
-
-  try{
-    if(!glbFallbackRuntime)glbFallbackRuntime=import(THREE_VIEWER_LOCAL);
-    const {THREE,OrbitControls}=await glbFallbackRuntime;
-
-    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:"high-performance"});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-    renderer.outputColorSpace=THREE.SRGBColorSpace;
-    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.18;
-
-    const scene=new THREE.Scene();
-    scene.background=new THREE.Color(0x0b1012);
-    const camera=new THREE.PerspectiveCamera(34,1,.01,100000);
-    scene.add(new THREE.HemisphereLight(0xffffff,0x26333a,2.8));
-    const key=new THREE.DirectionalLight(0xffffff,3.4);key.position.set(1.8,2.6,3.2);scene.add(key);
-    const rim=new THREE.DirectionalLight(0x7fd7ff,1.4);rim.position.set(-2.5,1.2,-1.8);scene.add(rim);
-
-    const geometry=new THREE.BufferGeometry();
-    const positions=new Float32Array((mesh?.vertices?.length||0)*3);
-    (mesh?.vertices||[]).forEach((v,i)=>{positions[i*3]=Number(v.x)||0;positions[i*3+1]=Number(v.y)||0;positions[i*3+2]=Number(v.z)||0});
-    geometry.setAttribute("position",new THREE.BufferAttribute(positions,3));
-
-    const materialList=(materials?.length?materials:[{name:"Terrain",color:"#808080FF"}]).map((material,index)=>{
-      const hex=String(material?.color||"#808080").slice(0,7);
-      return new THREE.MeshStandardMaterial({
-        name:String(material?.name||("Material "+index)),
-        color:new THREE.Color(hex),
-        metalness:0,
-        roughness:.78,
-        side:THREE.DoubleSide
-      });
-    });
-
-    const grouped=new Map();
-    for(const tri of (mesh?.triangles||[])){
-      const region=Math.max(0,Math.min(materialList.length-1,Math.floor(Number(tri.region)||0)));
-      if(!grouped.has(region))grouped.set(region,[]);
-      grouped.get(region).push(tri.a,tri.b,tri.c);
-    }
-    const ordered=[];
-    let indexStart=0;
-    for(let region=0;region<materialList.length;region++){
-      const indices=grouped.get(region)||[];
-      if(!indices.length)continue;
-      ordered.push(...indices);
-      geometry.addGroup(indexStart,indices.length,region);
-      indexStart+=indices.length;
-    }
-    geometry.setIndex(ordered);
-    geometry.computeVertexNormals();
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-
-    const object=new THREE.Mesh(geometry,materialList);
-    object.rotation.x=-Math.PI/2;
-    scene.add(object);
-    object.updateMatrixWorld(true);
-
-    const controls=new OrbitControls(camera,canvas);
-    controls.enableDamping=true;controls.dampingFactor=.08;controls.enablePan=false;
-
-    const expected=Math.max(10,Number(modelWidthMm)||101.6);
-    const box=new THREE.Box3().setFromObject(object);
-    const size=new THREE.Vector3(),center=new THREE.Vector3();
-    box.getSize(size);box.getCenter(center);
-    const maxDim=Math.max(size.x,size.y,size.z);
-    if(!Number.isFinite(maxDim)||maxDim<=0)throw new Error("Generated preview mesh has invalid bounds.");
-    const framed=Math.max(maxDim,expected*.7);
-    const distance=framed/Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*.82;
-    camera.near=Math.max(.01,framed/5000);
-    camera.far=Math.max(5000,framed*60);
-    camera.position.set(center.x+distance*.55,center.y+distance*.65,center.z+distance*.9);
-    camera.updateProjectionMatrix();
-    controls.target.copy(center);
-    controls.minDistance=framed*.3;
-    controls.maxDistance=framed*8;
-    controls.update();
-
-    let frame=0,disposed=false;
-    const resize=()=>{
-      const width=Math.max(320,canvas.clientWidth||canvas.parentElement?.clientWidth||800);
-      const height=Math.max(260,canvas.clientHeight||canvas.parentElement?.clientHeight||360);
-      renderer.setSize(width,height,false);
-      camera.aspect=width/height;
-      camera.updateProjectionMatrix();
-    };
-    resize();
-    const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
-
-    const tick=()=>{
-      if(disposed)return;
-      controls.update();
-      renderer.render(scene,camera);
-      frame=requestAnimationFrame(tick);
-    };
-    tick();
-
-    canvas.dataset.renderState="ready";
-    glbViewerStatus.textContent="3D preview active · exact generated production mesh. Drag to orbit and wheel/pinch to zoom.";
-    glbFallbackCleanup=()=>{
-      disposed=true;
-      if(frame)cancelAnimationFrame(frame);
-      resizeObserver.disconnect();
-      controls.dispose();
-      geometry.dispose();
-      for(const material of materialList)material.dispose();
-      renderer.dispose();
-    };
-    return true;
-  }catch(error){
-    canvas.dataset.renderState="error";
-    canvas.dataset.renderError=String(error?.message||error);
-    glbViewerStatus.textContent=`3D preview failed · ${canvas.dataset.renderError}. The downloadable GLB remains available.`;
-    throw error;
-  }
+  glbFallbackCleanup=renderProductionMeshPreviewDirect({
+    canvas:glbFallbackCanvas,
+    mesh,
+    materials,
+    modelWidthMm,
+    statusEl:glbViewerStatus
+  });
+  return true;
 }
+
 
 if(glbViewer){
   glbViewer.addEventListener("error",event=>{
