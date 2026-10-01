@@ -546,7 +546,7 @@ export default {
     if ((url.pathname === "/terrain-medal" || url.pathname === "/terrain-medal/") && (request.method === "GET" || request.method === "HEAD")) {
       if(!env.ASSETS)return json({error:"Static assets unavailable."},503);
       const assetUrl=new URL(request.url);
-      assetUrl.pathname="/terrain-medal-v31.html";
+      assetUrl.pathname="/terrain-medal.html";
       const assetRequest=new Request(assetUrl.toString(),{method:request.method,headers:request.headers});
       const asset=await env.ASSETS.fetch(assetRequest);
       const headers=new Headers(asset.headers);
