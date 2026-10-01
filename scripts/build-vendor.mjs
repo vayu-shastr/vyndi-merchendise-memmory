@@ -47,4 +47,22 @@ await build({
   legalComments:"eof"
 });
 
+
+await build({
+  stdin:{
+    contents:'import * as THREE from "three"; import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"; import { OrbitControls } from "three/addons/controls/OrbitControls.js"; export { THREE, GLTFLoader, OrbitControls };',
+    resolveDir:root,
+    sourcefile:"three-glb-viewer-entry.mjs",
+    loader:"js"
+  },
+  outfile:resolve(outdir,"three-glb-viewer.mjs"),
+  bundle:true,
+  format:"esm",
+  platform:"browser",
+  target:["es2022"],
+  minify:true,
+  sourcemap:false,
+  legalComments:"eof"
+});
+
 console.log("PQ1 vendor bundles generated in dist/vendor");

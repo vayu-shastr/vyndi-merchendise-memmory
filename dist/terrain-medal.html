@@ -170,7 +170,7 @@
             <strong id="glbViewerTitle">GLB visual / AR inspection</strong>
             <span id="glbViewerStatus">Generate a print model to inspect the exact exported GLB.</span>
           </div>
-          <model-viewer id="glbViewer" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" shadow-intensity="0.8" exposure="1.05" camera-orbit="0deg 35deg auto" environment-image="neutral" tone-mapping="neutral" interaction-prompt="auto" reveal="auto" loading="eager" alt="VYNDI Terrain Medal GLB production model"></model-viewer>
+          <div class="glb-viewer-stage"><canvas id="glbFallbackCanvas" class="glb-fallback-canvas" aria-label="Interactive generated Terrain Medal GLB preview"></canvas><model-viewer id="glbViewer" class="glb-native-viewer" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" shadow-intensity="0.8" exposure="1.05" camera-orbit="0deg 35deg auto" environment-image="neutral" tone-mapping="neutral" interaction-prompt="none" reveal="auto" loading="eager" alt="VYNDI Terrain Medal GLB production model"></model-viewer></div>
         </section>
       </section>
     </section>
@@ -179,7 +179,7 @@
     <div class="footer-product"><a class="brand product-brand" href="index.html"><img src="assets/vayu-official.png" alt="Vāyú Shastr official logo"><span class="brand-copy">MY ROAD — MY GLORY<small>Powered by VYNDI Ride Stories</small></span></a><div><a href="/#finish">Merchandise</a> · <a href="https://vyndi-ride-stories.vayushastr.workers.dev/community">Community</a></div></div>
     <div class="parent-attribution"><a href="https://www.vayushastr.com/" target="_blank" rel="noopener"><img src="assets/vayu-official.png" alt="Vāyú Shastr Pvt Ltd logo"><span>Vāyú Shastr Pvt Ltd</span></a><small>© 2026 Vāyú Shastr Pvt Ltd · Parent company of VYNDI Ride Stories.<br>Official service: <strong>vmm.vayushastr.workers.dev</strong> · Security: <a href="mailto:info@vayushastr.com">info@vayushastr.com</a></small></div>
   </footer>
-  <script type="module" src="terrain-medal.js?v=34"></script>
+  <script type="module" src="terrain-medal.js?v=35"></script>
 </body>
 </html>
 
