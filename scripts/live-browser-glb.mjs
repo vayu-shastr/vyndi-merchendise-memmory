@@ -7,6 +7,7 @@ const consoleErrors=[];
 page.on("console",msg=>{ if(msg.type()==="error") consoleErrors.push(msg.text()); });
 page.on("pageerror",err=>consoleErrors.push(String(err)));
 
+let result=null;
 try{
   await page.goto(base+"?e2e="+Date.now(),{waitUntil:"networkidle",timeout:60000});
 
@@ -21,7 +22,7 @@ try{
   </gpx>`;
 
   await page.setInputFiles("#gpxInput",{name:"vmm-e2e.gpx",mimeType:"application/gpx+xml",buffer:Buffer.from(gpx)});
-  await page.waitForFunction(()=>document.querySelector("#gpxState")?.textContent?.includes("route"),null,{timeout:90000});
+  await page.waitForFunction(()=>document.querySelector("#gpxState")?.textContent?.includes("source points"),null,{timeout:30000});
   await page.check('input[name="diameter"][value="3"]');
   await page.fill("#meshTargetXy","2");
   await page.dispatchEvent("#meshTargetXy","change");
@@ -30,7 +31,7 @@ try{
   await page.waitForFunction(()=>document.querySelector("#productionStatus")?.textContent?.startsWith("Ready ·"),null,{timeout:120000});
   await page.waitForFunction(()=>document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="ready" || document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="error",null,{timeout:30000});
 
-  const result=await page.evaluate(()=>{
+  result=await page.evaluate(()=>{
     const canvas=document.querySelector("#glbFallbackCanvas");
     const status=document.querySelector("#glbViewerStatus")?.textContent||"";
     const renderState=canvas?.dataset?.renderState||"missing";
@@ -57,6 +58,18 @@ try{
   if(result.renderState!=="ready") throw new Error("fallback renderer not ready: "+result.renderError);
   if(result.sampledNonBackground<50) throw new Error("fallback canvas appears blank: "+JSON.stringify(result));
   if(consoleErrors.length) throw new Error("browser console errors: "+consoleErrors.join(" | "));
+} catch(error) {
+  const state=await page.evaluate(()=>({
+    url:location.href,
+    gpxState:document.querySelector("#gpxState")?.textContent||"",
+    productionStatus:document.querySelector("#productionStatus")?.textContent||"",
+    viewerStatus:document.querySelector("#glbViewerStatus")?.textContent||"",
+    fallbackState:document.querySelector("#glbFallbackCanvas")?.dataset?.renderState||"",
+    fallbackError:document.querySelector("#glbFallbackCanvas")?.dataset?.renderError||""
+  })).catch(()=>({}));
+  console.error("DIAGNOSTIC FAILURE",JSON.stringify({message:String(error),state,consoleErrors},null,2));
+  await page.screenshot({path:"glb-preview.png",fullPage:true}).catch(()=>{});
+  throw error;
 } finally {
   await browser.close();
 }
