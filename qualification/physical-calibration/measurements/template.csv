@@ -1,0 +1,1 @@
+case_id,printer,firmware,slicer,slicer_version,material,nozzle_mm,layer_height_mm,feature,nominal_mm,slicer_interpreted_mm,measured_mm,deviation_mm,deviation_percent,instrument,instrument_resolution_mm,verdict,photo_reference,notes

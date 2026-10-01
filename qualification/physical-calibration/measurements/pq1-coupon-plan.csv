@@ -1,0 +1,11 @@
+case_id,feature,nominal_mm,measurement_axis,measured_mm,deviation_mm,deviation_percent,verdict,photo_reference,notes
+PQ1-X,overall coupon width,80.000,X,,,,,,
+PQ1-Y,overall coupon depth,40.000,Y,,,,,,
+PQ1-Z,base thickness,2.400,Z,,,,,,
+PQ1-L1,raised line width below limit,0.480,X,,,,,,
+PQ1-L2,raised line width below limit,0.640,X,,,,,,
+PQ1-L3,raised line width at recommended limit,0.800,X,,,,,,
+PQ1-L4,raised line width above limit,0.960,X,,,,,,
+PQ1-E1,emboss height below recommended limit,0.180,Z,,,,,,
+PQ1-E2,emboss height at recommended limit,0.300,Z,,,,,,
+PQ1-E3,emboss height above recommended limit,0.450,Z,,,,,,

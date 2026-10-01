@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vyndi.pq1.slicer-evidence.schema.json",
+  "title": "VYNDI Terrain Medal PQ1 slicer evidence",
+  "type": "object",
+  "required": ["slicer","version","os","artifactSha256","checks","verdict"],
+  "properties": {
+    "slicer": {"enum":["Bambu Studio","OrcaSlicer","PrusaSlicer","UltiMaker Cura"]},
+    "version": {"type":"string","minLength":1},
+    "os": {"type":"string","minLength":1},
+    "artifactSha256": {"type":"string","pattern":"^[0-9a-fA-F]{64}$"},
+    "importedDimensionsMm": {"type":"array","items":{"type":"number"},"minItems":3,"maxItems":3},
+    "objectsDetected": {"type":"integer","minimum":1},
+    "materialRegionsDetected": {"type":"integer","minimum":1},
+    "repairWarnings": {"type":"array","items":{"type":"string"}},
+    "errors": {"type":"array","items":{"type":"string"}},
+    "sliceCompleted": {"type":"boolean"},
+    "toolpathGenerated": {"type":"boolean"},
+    "checks": {"type":"object"},
+    "evidenceFiles": {"type":"array","items":{"type":"string"}},
+    "verdict": {"enum":["PASS","PARTIAL","FAIL"]}
+  }
+}
