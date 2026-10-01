@@ -3,21 +3,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const html=readFileSync(new URL("../dist/index.html",import.meta.url),"utf8");
-const v3=readFileSync(new URL("../dist/ride-stories-v3.html",import.meta.url),"utf8");
-const v4=readFileSync(new URL("../dist/ride-stories-v4.html",import.meta.url),"utf8");
 const js=readFileSync(new URL("../dist/app.js",import.meta.url),"utf8");
 const theme=readFileSync(new URL("../dist/my-road-my-glory-theme.css",import.meta.url),"utf8");
 
-for(const surface of [html,v3,v4]){
-  test("creator exposes compact dropdown choice groups",()=>{
-    for(const key of ["layout","map","frame","mount","format","colour"]){
-      assert.match(surface,new RegExp('data-studio-dropdown="'+key+'"'));
-    }
-    assert.match(surface,/id="studioHoverPreview"/);
-    assert.match(surface,/class="studio-select-trigger"/);
-    assert.doesNotMatch(surface,/class="studio-choice-row"/);
-  });
-}
+test("creator exposes compact dropdown choice groups",()=>{
+  for(const key of ["layout","map","frame","mount","format","colour"]){
+    assert.match(html,new RegExp('data-studio-dropdown="'+key+'"'));
+  }
+  assert.match(html,/id="studioHoverPreview"/);
+  assert.match(html,/class="studio-select-trigger"/);
+  assert.doesNotMatch(html,/class="studio-choice-row"/);
+});
 
 test("hover preview is temporary and selection is committed directly to live preview",()=>{
   assert.match(js,/function showStudioOptionPreview/);
@@ -60,12 +56,13 @@ test("creator workflow guidance and event finder are one integrated workspace",(
   assert.doesNotMatch(html,/<section class="event-finder /);
 });
 
-test("finish section combines order and community without another catalogue",()=>{
+test("finish section combines order and external community without another catalogue",()=>{
   assert.match(html,/FINISH \+ ORDER/);
   assert.match(html,/One creator\.[\s\S]*One final piece\./);
   assert.match(html,/Open VYNDI Community/);
   assert.match(html,/id="addConfiguredToCart"/);
   assert.match(html,/community-channels/);
+  assert.match(html,/https:\/\/vyndi-ride-stories\.vayushastr\.workers\.dev\/community/);
   assert.doesNotMatch(html,/data-shop-filter=/);
 });
 
@@ -79,11 +76,9 @@ test("icon-led compact orientation keeps live preview as the primary anchor",()=
   assert.match(theme,/LIVE PREVIEW/);
 });
 
-test("all public shells load the repaired live-preview controller",()=>{
-  for(const surface of [html,v3,v4]){
-    assert.match(surface,/app\.js\?v=20261001-ui-audit-4/);
-    assert.doesNotMatch(surface,/app\.js\?v=20261001-live-preview-2/);
-  }
+test("standalone public shell loads the repaired live-preview controller",()=>{
+  assert.match(html,/app\.js\?v=20261001-ui-audit-4/);
+  assert.doesNotMatch(html,/app\.js\?v=20261001-live-preview-2/);
 });
 
 test("studio control wiring exists before default selections initialise",()=>{
@@ -92,7 +87,6 @@ test("studio control wiring exists before default selections initialise",()=>{
   assert.ok(wiring>=0);
   assert.ok(init>wiring);
 });
-
 
 test("every studio option has a visible live-preview effect in all layout combinations",()=>{
   for(const layout of ["photo-medal","complete","double-photo","double-medal"]){
@@ -110,4 +104,3 @@ test("selection confirmation remains visible without a GPX",()=>{
   assert.match(js,/document\.body\.dataset\.studioRouteColour/);
   assert.match(js,/studioMapEmpty\?\.style\.setProperty\("--route-preview"/);
 });
-
