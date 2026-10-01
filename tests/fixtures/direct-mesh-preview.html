@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direct Mesh Preview Harness</title>
+<style>
+html,body{margin:0;background:#050707;color:white;font-family:Arial,sans-serif}
+#stage{width:900px;height:560px;margin:20px;background:#0b1012;border:1px solid #3b4b4d}
+#preview{display:block;width:100%;height:100%}
+#status{margin:20px}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="preview"></canvas></div>
+<div id="status">starting</div>
+<script type="module">
+import { renderProductionMeshPreview } from "/dist/direct-mesh-preview.mjs?v=1";
+
+const mesh={
+  vertices:[
+    {x:-50,y:-40,z:0},{x:50,y:-40,z:0},{x:50,y:40,z:0},{x:-50,y:40,z:0},
+    {x:-50,y:-40,z:5},{x:50,y:-40,z:9},{x:50,y:40,z:14},{x:-50,y:40,z:7}
+  ],
+  triangles:[
+    {a:4,b:5,c:6,region:0},{a:4,b:6,c:7,region:0},
+    {a:0,b:2,c:1,region:1},{a:0,b:3,c:2,region:1},
+    {a:0,b:1,c:5,region:0},{a:0,b:5,c:4,region:0},
+    {a:1,b:2,c:6,region:0},{a:1,b:6,c:5,region:0},
+    {a:2,b:3,c:7,region:0},{a:2,b:7,c:6,region:0},
+    {a:3,b:0,c:4,region:0},{a:3,b:4,c:7,region:0}
+  ]
+};
+const materials=[
+  {name:"Terrain",color:"#6A7B7CFF"},
+  {name:"Base",color:"#20282AFF"}
+];
+const canvas=document.querySelector("#preview"),statusEl=document.querySelector("#status");
+try{
+  window.__cleanup=renderProductionMeshPreview({canvas,mesh,materials,modelWidthMm:100,statusEl});
+  window.__previewResult={ok:true};
+}catch(error){
+  window.__previewResult={ok:false,error:String(error?.message||error)};
+}
+</script>
+</body>
+</html>

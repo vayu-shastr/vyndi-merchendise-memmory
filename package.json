@@ -6,7 +6,7 @@
     "postinstall": "npm run build:vendor",
     "build": "npm run build:vendor",
     "build:vendor": "node scripts/build-vendor.mjs",
-    "check": "npm run build:vendor && node --check dist/app.js && node --check dist/terrain-medal.js && node --check dist/terrain-medal-core.mjs && node --check dist/vector-map-core.mjs && node --check dist/event-discovery-core.mjs && node --check dist/print-model-core.mjs && node --check dist/map-outline-core.mjs && node --check dist/fabrication-extras-core.mjs && node --check dist/pro-dem-core.mjs && node --check src/terrain-worker.mjs",
+    "check": "npm run build:vendor && node --check dist/app.js && node --check dist/terrain-medal.js && node --check dist/direct-mesh-preview.mjs && node --check dist/terrain-medal-core.mjs && node --check dist/vector-map-core.mjs && node --check dist/event-discovery-core.mjs && node --check dist/print-model-core.mjs && node --check dist/map-outline-core.mjs && node --check dist/fabrication-extras-core.mjs && node --check dist/pro-dem-core.mjs && node --check src/terrain-worker.mjs",
     "test": "npm run build:vendor && node --test",
     "deploy": "npm run build:vendor && wrangler deploy",
     "pq1:geotiff": "python qualification/geotiff-corpus/generate-real-corpus.py && node scripts/pq1-validate-geotiff.mjs",

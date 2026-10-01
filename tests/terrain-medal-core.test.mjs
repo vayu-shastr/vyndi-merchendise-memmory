@@ -249,13 +249,17 @@ test("GLB viewer runtime is local-only and never falls back to a third-party CDN
   assert.doesNotMatch(js,/cdn\.jsdelivr\.net|unpkg\.com|ajax\.googleapis\.com/);
 });
 
-test("GLB viewer reports actual render load or error instead of optimistic loaded state",()=>{
+test("desktop preview reports direct production-mesh state while AR viewer errors remain observable",()=>{
   const js=readFileSync(new URL("../dist/terrain-medal.js",import.meta.url),"utf8");
-  assert.match(js,/addEventListener\(["']load["']/);
+  const preview=readFileSync(new URL("../dist/direct-mesh-preview.mjs",import.meta.url),"utf8");
+  assert.match(js,/renderProductionMeshPreview/);
+  assert.match(preview,/dataset\.renderState="loading"/);
+  assert.match(preview,/dataset\.renderState="ready"/);
+  assert.match(preview,/dataset\.renderState="error"/);
+  assert.match(preview,/3D preview active/);
+  assert.match(preview,/3D preview failed/);
   assert.match(js,/addEventListener\(["']error["']/);
-  assert.match(js,/Rendering governed GLB/);
-  assert.match(js,/GLB rendered/);
-  assert.match(js,/GLB viewer failed/);
+  assert.match(js,/AR viewer failed/);
 });
 
 

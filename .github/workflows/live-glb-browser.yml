@@ -1,14 +1,16 @@
-name: Live GLB Browser Diagnostic
+name: GLB Browser Visual Qualification
 
 on:
   push:
     branches: [main]
     paths:
       - "dist/terrain-medal*"
+      - "dist/direct-mesh-preview.mjs"
       - "dist/print-model-core.mjs"
       - "dist/vendor/**"
       - "scripts/build-vendor.mjs"
-      - "scripts/live-browser-glb.mjs"
+      - "scripts/branch-preview-browser.mjs"
+      - "tests/fixtures/direct-mesh-preview.html"
       - ".github/workflows/live-glb-browser.yml"
   pull_request:
     branches: [main]
@@ -20,7 +22,7 @@ permissions:
 jobs:
   browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,10 +31,23 @@ jobs:
       - run: npm ci
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - run: node scripts/live-browser-glb.mjs
+      - run: npm run build:vendor
+      - name: Serve PR branch locally
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/vmm-preview-http.log 2>&1 &
+          echo $! > /tmp/vmm-preview-http.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8765/tests/fixtures/direct-mesh-preview.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/vmm-preview-http.log
+          exit 1
+      - run: node scripts/branch-preview-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: glb-browser-diagnostic
-          path: glb-preview.png
+          name: direct-mesh-preview-visual
+          path: direct-mesh-preview.png
           if-no-files-found: ignore

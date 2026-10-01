@@ -11,6 +11,7 @@ export function isTerrainMedalRuntimeAsset(pathname=""){
     || path==="/terrain-medal-v31.js"
     || path==="/terrain-medal.css"
     || path==="/terrain-medal-v12.css"
+    || path==="/direct-mesh-preview.mjs"
     || /^\/(?:terrain-medal|print-model|fabrication-extras|pro-dem|vector-map|event-discovery|map-outline)-core\.mjs$/.test(path)
     || path.startsWith("/vendor/");
 }
