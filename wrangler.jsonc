@@ -6,6 +6,7 @@
   "build":{"command":"npm run build:vendor"},
   "assets":{"directory":"./dist","binding":"ASSETS","not_found_handling":"single-page-application","run_worker_first":["/","/index.html","/app.js","/styles.css","/my-road-my-glory-theme.css","/vyndi-typography.css","/vyndi-icons.svg","/assets/*","/.well-known/security.txt","/security-policy.html","/verify","/api/*","/terrain-medal*","/*-core.mjs","/vendor/*"]},
   "observability":{"enabled":true},
+  "secrets":{"required":["VYNDI_AUTH_SECRET"]},
   "ratelimits":[
     {"name":"API_RATE_LIMITER","namespace_id":"9201","simple":{"limit":180,"period":60}},
     {"name":"AUTH_RATE_LIMITER","namespace_id":"9202","simple":{"limit":10,"period":60}}
