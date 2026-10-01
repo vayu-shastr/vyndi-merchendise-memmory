@@ -39,16 +39,25 @@ Observed from GitHub-hosted external network checks against the deployed Worker 
 - the build-time duplicate was removed
 - secret remains absent from GitHub
 
-### OPEN — remaining mail-policy hardening
+### PASS — SPF enforcement
 
-1. **SPF hard-fail**
-   - current: `v=spf1 include:_spf.google.com ~all`
-   - target, after confirming Google Workspace is the only legitimate sender: `v=spf1 include:_spf.google.com -all`
+- live record: `v=spf1 include:_spf.google.com -all`
+- one SPF record published
+- unauthorized senders now receive SPF hard-fail
 
-2. **DMARC enforcement**
-   - current: `v=DMARC1; p=none; pct=100`
-   - first enforcement stage: `v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:info@vayushastr.com`
-   - later target after reviewing reports: `v=DMARC1; p=reject; sp=reject; pct=100; rua=mailto:info@vayushastr.com`
+### PASS — DMARC enforcement stage 1
+
+- live record: `v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:info@vayushastr.com`
+- DMARC enforcement is active for the organizational domain and subdomains
+- aggregate reports are directed to `info@vayushastr.com`
+
+### Future hardening — DMARC reject
+
+After reviewing aggregate reports and confirming all legitimate senders remain aligned, the stronger final policy is:
+
+`v=DMARC1; p=reject; sp=reject; pct=100; rua=mailto:info@vayushastr.com`
+
+This is intentionally not yet enabled because quarantine is the staged enforcement step.
 
 ## Repository / Worker controls implemented
 
@@ -80,4 +89,4 @@ Observed from GitHub-hosted external network checks against the deployed Worker 
 
 The public UI can still be copied. The anti-clone control is cryptographic provenance: once the vmm Worker secret is configured, a clone cannot generate a valid VYNDI authenticity signature without that secret.
 
-Do not call the complete system fully secured until the two remaining OPEN mail-policy items above are closed and re-audited.
+The current staged security target is closed and externally re-audited. DMARC `p=reject` remains a deliberate future hardening step after monitoring quarantine reports.
