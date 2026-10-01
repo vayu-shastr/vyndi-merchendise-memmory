@@ -32,15 +32,20 @@ Observed from GitHub-hosted external network checks against the deployed Worker 
 
 ### OPEN — required for full target posture
 
-1. **VYNDI_AUTH_SECRET on vmm**
-   - live endpoint currently returns `{"configured":false,"version":1}`
-   - configure the secret directly in the Cloudflare vmm Worker; never commit it to GitHub
+### PASS — VYNDI authenticity secret
 
-2. **SPF hard-fail**
+- live endpoint returns `{"configured":true,"version":1}`
+- secret is stored as an encrypted Cloudflare runtime secret
+- the build-time duplicate was removed
+- secret remains absent from GitHub
+
+### OPEN — remaining mail-policy hardening
+
+1. **SPF hard-fail**
    - current: `v=spf1 include:_spf.google.com ~all`
    - target, after confirming Google Workspace is the only legitimate sender: `v=spf1 include:_spf.google.com -all`
 
-3. **DMARC enforcement**
+2. **DMARC enforcement**
    - current: `v=DMARC1; p=none; pct=100`
    - first enforcement stage: `v=DMARC1; p=quarantine; sp=quarantine; pct=100; rua=mailto:info@vayushastr.com`
    - later target after reviewing reports: `v=DMARC1; p=reject; sp=reject; pct=100; rua=mailto:info@vayushastr.com`
@@ -75,4 +80,4 @@ Observed from GitHub-hosted external network checks against the deployed Worker 
 
 The public UI can still be copied. The anti-clone control is cryptographic provenance: once the vmm Worker secret is configured, a clone cannot generate a valid VYNDI authenticity signature without that secret.
 
-Do not call the complete system fully secured until the three OPEN items above are closed and re-audited.
+Do not call the complete system fully secured until the two remaining OPEN mail-policy items above are closed and re-audited.
