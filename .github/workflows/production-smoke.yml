@@ -32,7 +32,7 @@ jobs:
           for _ in range(12):
               try:
                   hs,html=get(base+"/terrain-medal?smoke="+str(time.time_ns()))
-                  js,script=get(base+"/terrain-medal.js?v=34&smoke="+str(time.time_ns()))
+                  js,script=get(base+"/terrain-medal.js?v=35&smoke="+str(time.time_ns()))
                   vs,vendor=get(base+"/vendor/three-glb-viewer.mjs?smoke="+str(time.time_ns()))
                   if hs==200 and js==200 and vs==200 and expected_html in html and expected_core in script and len(vendor)>1000:
                       print("LIVE PASS: deployed Terrain Medal bundle is current")
