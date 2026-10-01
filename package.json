@@ -1,0 +1,27 @@
+{
+  "name": "vyndi-terrain-merchandise",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm run build:vendor",
+    "build": "npm run build:vendor",
+    "build:vendor": "node scripts/build-vendor.mjs",
+    "check": "npm run build:vendor && node --check dist/app.js && node --check dist/terrain-medal.js && node --check dist/terrain-medal-core.mjs && node --check dist/vector-map-core.mjs && node --check dist/event-discovery-core.mjs && node --check dist/print-model-core.mjs && node --check dist/map-outline-core.mjs && node --check dist/fabrication-extras-core.mjs && node --check dist/pro-dem-core.mjs && node --check src/terrain-worker.mjs",
+    "test": "npm run build:vendor && node --test",
+    "deploy": "npm run build:vendor && wrangler deploy",
+    "pq1:geotiff": "python qualification/geotiff-corpus/generate-real-corpus.py && node scripts/pq1-validate-geotiff.mjs",
+    "pq1:performance": "node scripts/pq1-performance.mjs",
+    "pq1:artifacts": "node scripts/pq1-generate-validation-artifacts.mjs",
+    "security:configure-authenticity": "node scripts/configure-authenticity-secret.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.144.0",
+    "esbuild": "0.28.2"
+  },
+  "dependencies": {
+    "@google/model-viewer": "4.3.1",
+    "geotiff": "3.0.5",
+    "proj4": "2.22.0",
+    "three": "0.183.0"
+  }
+}
