@@ -1,0 +1,138 @@
+name: External Security Audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "11 2 * * 3"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Audit live Worker and public DNS
+        run: |
+          python3 - <<'PY'
+          import json, os, re, ssl, urllib.parse, urllib.request
+
+          worker = "https://vmm.vayushastr.workers.dev"
+          domain = "vayushastr.com"
+
+          def get_url(url, timeout=20):
+              req = urllib.request.Request(url, headers={"User-Agent":"VMM-Security-Audit/1.0"})
+              with urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context()) as r:
+                  return r.status, dict(r.headers.items()), r.read().decode("utf-8", "replace")
+
+          def dns(name, qtype):
+              url = "https://dns.google/resolve?" + urllib.parse.urlencode({"name":name,"type":qtype})
+              status, _, body = get_url(url)
+              data = json.loads(body)
+              answers = [a.get("data","") for a in data.get("Answer",[]) if a.get("data")]
+              return {"http": status, "status": data.get("Status"), "answers": answers}
+
+          def txt_values(name):
+              vals=[]
+              for a in dns(name, "TXT")["answers"]:
+                  parts=re.findall(r'"([^"]*)"', a)
+                  vals.append("".join(parts) if parts else a.strip('"'))
+              return vals
+
+          report = {"worker": {}, "dns": {}}
+
+          try:
+              status, headers, body = get_url(worker + "/")
+              lower = {k.lower(): v for k,v in headers.items()}
+              report["worker"]["https_status"] = status
+              report["worker"]["hsts"] = lower.get("strict-transport-security","")
+              report["worker"]["csp"] = lower.get("content-security-policy","")
+              report["worker"]["x_content_type_options"] = lower.get("x-content-type-options","")
+              report["worker"]["x_frame_options"] = lower.get("x-frame-options","")
+              report["worker"]["referrer_policy"] = lower.get("referrer-policy","")
+          except Exception as e:
+              report["worker"]["https_error"] = repr(e)
+
+          try:
+              status, _, body = get_url(worker + "/api/authenticity/status")
+              report["worker"]["authenticity_http"] = status
+              report["worker"]["authenticity"] = json.loads(body)
+          except Exception as e:
+              report["worker"]["authenticity_error"] = repr(e)
+
+          for path in ["/.well-known/security.txt","/security-policy.html"]:
+              try:
+                  status, _, body = get_url(worker + path)
+                  report["worker"][path] = {"status":status,"present":bool(body.strip())}
+              except Exception as e:
+                  report["worker"][path] = {"error":repr(e)}
+
+          try:
+              report["dns"]["spf"] = [x for x in txt_values(domain) if x.lower().startswith("v=spf1")]
+          except Exception as e:
+              report["dns"]["spf_error"] = repr(e)
+          try:
+              report["dns"]["dmarc"] = [x for x in txt_values("_dmarc."+domain) if x.lower().startswith("v=dmarc1")]
+          except Exception as e:
+              report["dns"]["dmarc_error"] = repr(e)
+          try:
+              report["dns"]["dkim_google"] = txt_values("google._domainkey."+domain)
+          except Exception as e:
+              report["dns"]["dkim_error"] = repr(e)
+          try:
+              report["dns"]["mx"] = dns(domain,"MX")["answers"]
+          except Exception as e:
+              report["dns"]["mx_error"] = repr(e)
+          try:
+              report["dns"]["ds"] = dns(domain,"DS")["answers"]
+          except Exception as e:
+              report["dns"]["ds_error"] = repr(e)
+
+          spf = report["dns"].get("spf",[])
+          dmarc = report["dns"].get("dmarc",[])
+          dkim = report["dns"].get("dkim_google",[])
+          mx = report["dns"].get("mx",[])
+          ds = report["dns"].get("ds",[])
+          auth = report["worker"].get("authenticity",{})
+
+          posture = {
+              "worker_https_reachable": report["worker"].get("https_status") == 200,
+              "worker_hsts_present": "max-age=" in report["worker"].get("hsts",""),
+              "worker_csp_present": bool(report["worker"].get("csp")),
+              "worker_nosniff": report["worker"].get("x_content_type_options","").lower() == "nosniff",
+              "worker_frame_deny": report["worker"].get("x_frame_options","").upper() == "DENY",
+              "authenticity_secret_configured": bool(auth.get("configured")) if isinstance(auth,dict) else False,
+              "security_txt_live": report["worker"].get("/.well-known/security.txt",{}).get("status") == 200,
+              "security_policy_live": report["worker"].get("/security-policy.html",{}).get("status") == 200,
+              "spf_present": len(spf) == 1,
+              "spf_hard_fail": len(spf) == 1 and "-all" in spf[0],
+              "dkim_google_present": bool(dkim),
+              "dmarc_present": len(dmarc) == 1,
+              "dmarc_enforced": len(dmarc) == 1 and re.search(r"(?:^|;)\s*p=(quarantine|reject)(?:;|$)", dmarc[0], re.I) is not None,
+              "dmarc_reject": len(dmarc) == 1 and re.search(r"(?:^|;)\s*p=reject(?:;|$)", dmarc[0], re.I) is not None,
+              "google_mx_present": any("google.com" in x.lower() for x in mx),
+              "dnssec_ds_present": bool(ds)
+          }
+
+          print(json.dumps({"report":report,"posture":posture}, indent=2))
+
+          lines = [
+              "# External Security Audit",
+              "",
+              "Target Worker: " + worker,
+              "Mail/DNS domain: " + domain,
+              "",
+              "## Posture",
+          ]
+          for k,v in posture.items():
+              lines.append("- " + ("PASS" if v else "OPEN") + " — **" + k + "**")
+          lines += ["", "## Public records / live values", "", "    " + json.dumps(report, indent=2).replace("\n","\n    ")]
+          summary = "\n".join(lines) + "\n"
+          path = os.environ.get("GITHUB_STEP_SUMMARY")
+          if path:
+              with open(path,"a",encoding="utf-8") as f:
+                  f.write(summary)
+          PY
