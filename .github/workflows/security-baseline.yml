@@ -1,0 +1,35 @@
+name: Security Baseline
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 1 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-and-supply-chain-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Install dependencies without package lifecycle scripts
+        run: npm ci --ignore-scripts --no-fund
+      - name: Audit production and development dependency graph
+        run: npm audit --audit-level=high
+      - name: Build pinned browser vendor bundles
+        run: npm run build:vendor
+      - name: Security regression tests
+        run: node --test tests/terrain-worker-standalone.test.mjs tests/terrain-medal-core.test.mjs tests/security-dom.test.mjs tests/security-identity.test.mjs tests/security-baseline-files.test.mjs tests/deployment-identity.test.mjs tests/my-road-my-glory-theme.test.mjs
+      - name: Reject browser runtime CDN script fallbacks
+        run: |
+          ! grep -R -E "cdn\.jsdelivr\.net|unpkg\.com|ajax\.googleapis\.com" dist/*.js dist/*-core.mjs
+      - name: Reject wildcard CORS in Worker source
+        run: |
+          ! grep -R -E "Access-Control-Allow-Origin.{0,12}\*" src/terrain-worker.mjs

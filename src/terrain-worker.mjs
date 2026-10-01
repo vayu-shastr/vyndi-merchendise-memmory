@@ -23,6 +23,8 @@ export function isRideStoriesRuntimeAsset(pathname=""){
     || path==="/my-road-my-glory-theme.css"
     || path==="/vyndi-typography.css"
     || path==="/vyndi-icons.svg"
+    || path==="/.well-known/security.txt"
+    || path==="/security-policy.html"
     || path.startsWith("/assets/");
 }
 
