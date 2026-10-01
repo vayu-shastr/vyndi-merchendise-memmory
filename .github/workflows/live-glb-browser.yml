@@ -1,6 +1,15 @@
 name: Live GLB Browser Diagnostic
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "dist/terrain-medal*"
+      - "dist/print-model-core.mjs"
+      - "dist/vendor/**"
+      - "scripts/build-vendor.mjs"
+      - "scripts/live-browser-glb.mjs"
+      - ".github/workflows/live-glb-browser.yml"
   pull_request:
     branches: [main]
   workflow_dispatch:
