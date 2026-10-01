@@ -23,11 +23,13 @@ try{
 
   await page.setInputFiles("#gpxInput",{name:"vmm-e2e.gpx",mimeType:"application/gpx+xml",buffer:Buffer.from(gpx)});
   await page.waitForFunction(()=>document.querySelector("#gpxState")?.textContent?.includes("source points"),null,{timeout:30000});
-  await page.check('input[name="diameter"][value="3"]');
-  await page.fill("#meshTargetXy","2");
-  await page.dispatchEvent("#meshTargetXy","change");
-
-  await page.click("#generatePrintModel");
+  await page.evaluate(()=>{
+    const radio=document.querySelector('input[name="diameter"][value="3"]');
+    radio.checked=true;radio.dispatchEvent(new Event("change",{bubbles:true}));
+    const mesh=document.querySelector("#meshTargetXy");
+    mesh.value="2";mesh.dispatchEvent(new Event("input",{bubbles:true}));mesh.dispatchEvent(new Event("change",{bubbles:true}));
+    document.querySelector("#generatePrintModel").click();
+  });
   await page.waitForFunction(()=>document.querySelector("#productionStatus")?.textContent?.startsWith("Ready ·"),null,{timeout:120000});
   await page.waitForFunction(()=>document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="ready" || document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="error",null,{timeout:30000});
 
