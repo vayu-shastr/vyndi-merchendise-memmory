@@ -1,6 +1,6 @@
 {
   "$schema":"node_modules/wrangler/config-schema.json",
-  "name":"vyndi-terrain-merchandise",
+  "name":"vmm",
   "main":"src/terrain-worker.mjs",
   "compatibility_date":"2026-09-29",
   "build":{"command":"npm run build:vendor"},

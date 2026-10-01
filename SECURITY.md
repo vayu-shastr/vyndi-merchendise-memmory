@@ -29,7 +29,7 @@ Do not perform destructive testing, denial-of-service/load attacks, credential a
 
 Current canonical service:
 
-`https://vyndi-ride-stories.vayushastr.workers.dev/`
+`https://vmm.vayushastr.workers.dev/`
 
 Official correspondence uses:
 
