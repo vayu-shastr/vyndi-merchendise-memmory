@@ -25,9 +25,9 @@ try{
   await page.waitForFunction(()=>document.querySelector("#gpxState")?.textContent?.includes("source points"),null,{timeout:30000});
   await page.evaluate(()=>{
     const radio=document.querySelector('input[name="diameter"][value="3"]');
-    radio.checked=true;radio.dispatchEvent(new Event("change",{bubbles:true}));
+    radio.checked=true;
     const mesh=document.querySelector("#meshTargetXy");
-    mesh.value="2";mesh.dispatchEvent(new Event("input",{bubbles:true}));mesh.dispatchEvent(new Event("change",{bubbles:true}));
+    mesh.value="2";
     document.querySelector("#generatePrintModel").click();
   });
   await page.waitForFunction(()=>document.querySelector("#productionStatus")?.textContent?.startsWith("Ready ·"),null,{timeout:120000});
