@@ -11,7 +11,7 @@ const fields = { event: $("eventSelect"), eventName: $("eventName"), eventDate:$
 const framingSelect=$("framingSelect"),terrainExtentMode=$("terrainExtentMode"),routeBufferKm=$("routeBufferKm"),printMargin=$("printMargin"),printMarginOut=$("printMarginOut"),printAreaState=$("printAreaState");
 const geoContinent=$("geoContinent"),geoCountry=$("geoCountry"),geoRegion=$("geoRegion"),geoCity=$("geoCity"),terrainEnvironment=$("terrainEnvironment"),geoSearchButton=$("geoSearchButton"),geoSearchStatus=$("geoSearchStatus"),geoResults=$("geoResults");
 const eventWebSearch=$("eventWebSearch"),eventWebCategory=$("eventWebCategory"),eventWebSearchButton=$("eventWebSearchButton"),eventWebStatus=$("eventWebStatus"),eventWebResults=$("eventWebResults"),publicResultUrl=$("publicResultUrl"),importPublicResult=$("importPublicResult"),publicResultStatus=$("publicResultStatus"),participantMatches=$("participantMatches");
-const generatePrintModel=$("generatePrintModel"),download3mf=$("download3mf"),downloadStl=$("downloadStl"),downloadObj=$("downloadObj"),downloadGlb=$("downloadGlb"),downloadValidationBundle=$("downloadValidationBundle"),downloadStandStl=$("downloadStandStl"),downloadTilePlan=$("downloadTilePlan"),downloadPrintPackage=$("downloadPrintPackage"),productionStatus=$("productionStatus"),printerProfileNote=$("printerProfileNote"),printerProfileSource=$("printerProfileSource"),glbViewer=$("glbViewer"),glbViewerStatus=$("glbViewerStatus"),issueAuthenticity=$("issueAuthenticity"),downloadAuthenticity=$("downloadAuthenticity"),authenticityStatus=$("authenticityStatus"),verifyAuthenticityLink=$("verifyAuthenticityLink");
+const generatePrintModel=$("generatePrintModel"),download3mf=$("download3mf"),downloadStl=$("downloadStl"),downloadObj=$("downloadObj"),downloadGlb=$("downloadGlb"),downloadValidationBundle=$("downloadValidationBundle"),downloadStandStl=$("downloadStandStl"),downloadTilePlan=$("downloadTilePlan"),downloadPrintPackage=$("downloadPrintPackage"),productionStatus=$("productionStatus"),printerProfileNote=$("printerProfileNote"),printerProfileSource=$("printerProfileSource"),glbViewer=$("glbViewer"),glbFallbackCanvas=$("glbFallbackCanvas"),glbViewerStatus=$("glbViewerStatus"),issueAuthenticity=$("issueAuthenticity"),downloadAuthenticity=$("downloadAuthenticity"),authenticityStatus=$("authenticityStatus"),verifyAuthenticityLink=$("verifyAuthenticityLink");
 const shapeSelect=$("shapeSelect"),shapeAspect=$("shapeAspect"),modelWidthMm=$("modelWidthMm"),routeStyle=$("routeStyle"),contourEnabled=$("contourEnabled"),contourInterval=$("contourInterval"),contourRise=$("contourRise"),magnetEnabled=$("magnetEnabled"),magnetDiameter=$("magnetDiameter"),magnetDepth=$("magnetDepth"),magnetSpacing=$("magnetSpacing"),hangingLoopEnabled=$("hangingLoopEnabled"),loopInnerDiameter=$("loopInnerDiameter"),loopWall=$("loopWall"),bottomMark=$("bottomMark"),bottomEngraveDepth=$("bottomEngraveDepth"),logoInput=$("logoInput"),logoRise=$("logoRise"),heightmapInput=$("heightmapInput"),heightmapStrength=$("heightmapStrength"),standEnabled=$("standEnabled"),tileEnabled=$("tileEnabled"),tileMaxWidth=$("tileMaxWidth"),tileMaxHeight=$("tileMaxHeight"),tileJointType=$("tileJointType"),tileJointDiameter=$("tileJointDiameter"),tileJointDepth=$("tileJointDepth"),tileJointClearance=$("tileJointClearance"),elevationSource=$("elevationSource"),openTopoDataset=$("openTopoDataset"),openTopoKey=$("openTopoKey"),loadHighResDem=$("loadHighResDem"),fabricationStatus=$("fabricationStatus");
 const placeLabelMode=$("placeLabelMode"),placeSelectionList=$("placeSelectionList");
 const localDemInput=$("localDemInput"),geoTiffInput=$("geoTiffInput"),geoTiffCrs=$("geoTiffCrs"),demFillNoData=$("demFillNoData"),demSmoothRadius=$("demSmoothRadius"),meshTargetXy=$("meshTargetXy"),routeElevationMode=$("routeElevationMode"),routeElevationBlend=$("routeElevationBlend"),routeElevationBlendOut=$("routeElevationBlendOut"),trailsEnabled=$("trailsEnabled"),railwaysEnabled=$("railwaysEnabled"),buildingsEnabled=$("buildingsEnabled"),terrainColor=$("terrainColor"),waterColor=$("waterColor"),routeColor=$("routeColor"),roadsColor=$("roadsColor"),labelsColor=$("labelsColor"),trailsColor=$("trailsColor"),railwaysColor=$("railwaysColor"),buildingsColor=$("buildingsColor");
@@ -38,7 +38,8 @@ function logoUv(x,y,c){
   return {u:.5+(dx*Math.cos(a)+dy*Math.sin(a))/(2*half),v:.5-(-dx*Math.sin(a)+dy*Math.cos(a))*o.aspect/(2*half)};
 }
 const MODEL_VIEWER_LOCAL="/vendor/model-viewer.min.js?v=4.3.1";
-let glbViewerRuntime=null;
+const THREE_VIEWER_LOCAL="/vendor/three-glb-viewer.mjs?v=0.183.0";
+let glbViewerRuntime=null,glbFallbackRuntime=null,glbFallbackCleanup=null;
 
 async function ensureGlbViewerComponent(){
   if(customElements.get("model-viewer"))return "registered";
@@ -56,9 +57,68 @@ async function ensureGlbViewerComponent(){
   return glbViewerRuntime;
 }
 
+async function renderGlbFallback(glbBytes,modelWidthMm=101.6){
+  if(!glbFallbackCanvas)return false;
+  if(glbFallbackCleanup){try{glbFallbackCleanup()}catch{}glbFallbackCleanup=null}
+  if(!glbFallbackRuntime)glbFallbackRuntime=import(THREE_VIEWER_LOCAL);
+  const {THREE,GLTFLoader,OrbitControls}=await glbFallbackRuntime;
+  const canvas=glbFallbackCanvas;
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:"high-performance"});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.1;
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0b1012);
+  const camera=new THREE.PerspectiveCamera(34,1,.01,100000);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x22313a,2.5));
+  const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(1.5,2.2,2.8);scene.add(key);
+  const fill=new THREE.DirectionalLight(0x8fdcff,1.2);fill.position.set(-2,1,-1.5);scene.add(fill);
+  const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.08;controls.enablePan=false;
+  const expected=Math.max(10,Number(modelWidthMm)||101.6);
+  let object=null,frame=0,resizeObserver=null,disposed=false;
+
+  const resize=()=>{
+    const width=Math.max(320,canvas.clientWidth||canvas.parentElement?.clientWidth||800);
+    const height=Math.max(260,canvas.clientHeight||canvas.parentElement?.clientHeight||360);
+    renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
+  };
+  resize();
+  resizeObserver=new ResizeObserver(resize);resizeObserver.observe(canvas);
+
+  await new Promise((resolve,reject)=>{
+    const loader=new GLTFLoader();
+    const bytes=glbBytes instanceof Uint8Array?glbBytes:new Uint8Array(glbBytes);
+    const buffer=bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength);
+    loader.parse(buffer,"",gltf=>{object=gltf.scene;scene.add(object);resolve();},reject);
+  });
+
+  // Prefer actual GLB bounds when sane; otherwise frame the governed medal around origin.
+  const box=new THREE.Box3().setFromObject(object),size=new THREE.Vector3(),center=new THREE.Vector3();
+  box.getSize(size);box.getCenter(center);
+  const maxDim=Math.max(size.x,size.y,size.z);
+  const sane=Number.isFinite(maxDim)&&maxDim>0&&maxDim<expected*5;
+  if(!sane){center.set(0,expected*.04,0)}
+  const framed=sane?Math.max(maxDim,expected*.75):expected;
+  const distance=framed/Math.tan(THREE.MathUtils.degToRad(camera.fov*.5))*.72;
+  camera.near=Math.max(.01,framed/5000);camera.far=Math.max(5000,framed*50);camera.updateProjectionMatrix();
+  camera.position.set(center.x+distance*.55,center.y+distance*.55,center.z+distance*.85);
+  controls.target.copy(center);controls.minDistance=framed*.35;controls.maxDistance=framed*8;controls.update();
+
+  const tick=()=>{if(disposed)return;controls.update();renderer.render(scene,camera);frame=requestAnimationFrame(tick)};
+  tick();
+  glbViewerStatus.textContent="GLB rendered · local governed 3D preview active. Drag to orbit and wheel/pinch to zoom.";
+  glbFallbackCleanup=()=>{
+    disposed=true;if(frame)cancelAnimationFrame(frame);resizeObserver?.disconnect();controls.dispose();
+    scene.traverse(node=>{if(node.geometry)node.geometry.dispose?.();if(node.material){const mats=Array.isArray(node.material)?node.material:[node.material];for(const m of mats)m.dispose?.()}});
+    renderer.dispose();
+  };
+  return true;
+}
+
 if(glbViewer){
   glbViewer.addEventListener("load",()=>{
-    glbViewerStatus.textContent="GLB rendered · exact governed export is visible. Drag to orbit, wheel/pinch to zoom; AR is available where supported.";
+    glbViewerStatus.textContent="GLB loaded · preparing local governed 3D preview…";
   });
   glbViewer.addEventListener("error",event=>{
     const detail=event?.detail?.type||event?.detail?.message||"model load error";
@@ -120,7 +180,7 @@ function invalidateProductionModel(message="Print model changed. Generate again 
   if(downloadAuthenticity)downloadAuthenticity.disabled=true;
   if(verifyAuthenticityLink){verifyAuthenticityLink.hidden=true;verifyAuthenticityLink.removeAttribute("href")}
   if(authenticityStatus)authenticityStatus.textContent="Generate a print model, then issue a signed receipt to prove that its export manifest came from the canonical VYNDI service.";
-  if(glbViewerUrl){URL.revokeObjectURL(glbViewerUrl);glbViewerUrl=null}
+  if(glbViewerUrl){URL.revokeObjectURL(glbViewerUrl);glbViewerUrl=null} if(glbFallbackCleanup){try{glbFallbackCleanup()}catch{}glbFallbackCleanup=null}
   if(glbViewer){glbViewer.removeAttribute("src");glbViewerStatus.textContent="Generate a print model to inspect the exact exported GLB."}
   if(productionStatus&&terrain&&frameBounds)productionStatus.textContent=message;
 }
@@ -1018,6 +1078,7 @@ async function generateProductionModel(){
     issueAuthenticity.disabled=false;authenticityReceipt=null;downloadAuthenticity.disabled=true;verifyAuthenticityLink.hidden=true;authenticityStatus.textContent="Model ready · issue a signed VYNDI authenticity receipt to bind these export hashes to the canonical service.";
     if(glbViewerUrl)URL.revokeObjectURL(glbViewerUrl);
     glbViewerUrl=URL.createObjectURL(new Blob([glb],{type:"model/gltf-binary"}));
+    try{await renderGlbFallback(glb,diameterMm)}catch(error){glbViewerStatus.textContent=`Local 3D preview failed · ${error.message}. Trying AR viewer…`}
     if(glbViewer){
       try{
         const viewerSource=await ensureGlbViewerComponent();

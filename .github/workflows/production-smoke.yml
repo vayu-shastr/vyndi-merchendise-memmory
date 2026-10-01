@@ -19,8 +19,9 @@ jobs:
           import time, urllib.request, sys
 
           base="https://vmm.vayushastr.workers.dev"
-          expected_html="terrain-medal.js?v=34"
+          expected_html="terrain-medal.js?v=35"
           expected_core="print-model-core.mjs?v=8"
+          expected_fallback="three-glb-viewer.mjs"
 
           def get(url):
               req=urllib.request.Request(url,headers={"User-Agent":"VMM-Production-Smoke/1.0","Cache-Control":"no-cache"})
@@ -31,13 +32,15 @@ jobs:
           for _ in range(12):
               try:
                   hs,html=get(base+"/terrain-medal?smoke="+str(time.time_ns()))
-                  js,script=get(base+"/terrain-medal.js?v=34&smoke="+str(time.time_ns()))
-                  if hs==200 and js==200 and expected_html in html and expected_core in script:
+                  js,script=get(base+"/terrain-medal.js?v=35&smoke="+str(time.time_ns()))
+                  vs,vendor=get(base+"/vendor/three-glb-viewer.mjs?smoke="+str(time.time_ns()))
+                  if hs==200 and js==200 and vs==200 and expected_html in html and expected_core in script and len(vendor)>1000:
                       print("LIVE PASS: deployed Terrain Medal bundle is current")
                       print(expected_html)
                       print(expected_core)
+                      print(expected_fallback)
                       sys.exit(0)
-                  last=f"html={hs} html_has={expected_html in html} js={js} core_has={expected_core in script}"
+                  last=f"html={hs} html_has={expected_html in html} js={js} core_has={expected_core in script} vendor={vs} vendor_len={len(vendor)}"
               except Exception as e:
                   last=repr(e)
               time.sleep(5)
