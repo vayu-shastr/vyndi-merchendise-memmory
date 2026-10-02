@@ -5,7 +5,7 @@ import { buildAnnulusMesh, buildCylinderMesh, buildDisplayStandMesh, buildDoveta
 import { alignmentSocketDepth, contourEmbossHeight, dovetailKeyProfile, dovetailSlotDepth, magnetPocketDepth, parseArcAsciiGrid, planTiledMap, pointInsideShape, rasterSampler, sampleArcAsciiGrid, shapeBoundaryRadius, shapeMaxRadius } from "./fabrication-extras-core.mjs?v=3";
 import { adaptiveLargeFormatPlan, classifyTerrainWorkload, clipPolygonToRect, loadGeoTiffArrayBuffer, reconcileGpxElevations, rasterStats } from "./pro-dem-core.mjs?v=2";
 import { projectGeographicOutline, insidePolygons, maskPolygons, buildOutlineHeightfieldMesh, logoFootprint, footprintFits, findEmptyLogoPlacement } from "./map-outline-core.mjs?v=1";
-import { renderProductionMeshPreview as renderProductionMeshPreviewDirect } from "./direct-mesh-preview.mjs?v=1";
+import { renderProductionMeshPreview as renderProductionMeshPreviewDirect } from "./direct-mesh-preview.mjs?v=2";
 
 const $ = (id) => document.getElementById(id);
 const fields = { event: $("eventSelect"), eventName: $("eventName"), eventDate:$("eventDate"), eventLocation:$("eventLocation"), participant: $("participant"), bib: $("bib"), distance: $("distance"), startDetail:$("startDetail"), finishDetail:$("finishDetail"), elapsedTime:$("elapsedTime"), resultStatus:$("resultStatus"), placing:$("placing"), map: $("mapSelect"), printer: $("printerSelect"), exaggeration: $("exaggeration"), reliefLimit: $("reliefLimit"), waterMode: $("waterMode"), waveHeight: $("waveHeight"), wavelength: $("wavelength"), base: $("base"), routeWidth: $("routeWidth"), routeRise: $("routeRise") };
