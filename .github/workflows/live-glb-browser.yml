@@ -44,7 +44,12 @@ jobs:
           done
           cat /tmp/vmm-preview-http.log
           exit 1
-      - run: node scripts/branch-preview-browser.mjs
+      - name: Qualify hardware/WebGL preview
+        run: node scripts/branch-preview-browser.mjs
+      - name: Qualify software preview with WebGL disabled
+        env:
+          DISABLE_WEBGL: "1"
+        run: node scripts/branch-preview-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
