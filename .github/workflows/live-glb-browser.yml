@@ -1,11 +1,10 @@
-name: GLB Browser Visual Qualification
+name: Model Viewer Browser Qualification
 
 on:
   push:
     branches: [main]
     paths:
       - "dist/terrain-medal*"
-      - "dist/direct-mesh-preview.mjs"
       - "dist/print-model-core.mjs"
       - "dist/vendor/**"
       - "scripts/build-vendor.mjs"
@@ -35,7 +34,6 @@ jobs:
       - name: Serve PR branch locally
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/vmm-preview-http.log 2>&1 &
-          echo $! > /tmp/vmm-preview-http.pid
           for i in {1..20}; do
             if curl -fsS http://127.0.0.1:8765/tests/fixtures/direct-mesh-preview.html >/dev/null; then
               exit 0
@@ -44,15 +42,11 @@ jobs:
           done
           cat /tmp/vmm-preview-http.log
           exit 1
-      - name: Qualify hardware/WebGL preview
-        run: node scripts/branch-preview-browser.mjs
-      - name: Qualify software preview with WebGL disabled
-        env:
-          DISABLE_WEBGL: "1"
+      - name: Qualify original VYNDI Ride Stories model-viewer path
         run: node scripts/branch-preview-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: direct-mesh-preview-visual
+          name: model-viewer-visual
           path: direct-mesh-preview.png
           if-no-files-found: ignore
