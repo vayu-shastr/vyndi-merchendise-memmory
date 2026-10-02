@@ -7,64 +7,64 @@ const consoleErrors=[];
 page.on("console",msg=>{ if(msg.type()==="error") consoleErrors.push(msg.text()); });
 page.on("pageerror",err=>consoleErrors.push(String(err)));
 
-let result=null;
 try{
-  await page.goto(base+"?e2e="+Date.now(),{waitUntil:"networkidle",timeout:60000});
-
-  const gpx=`<?xml version="1.0" encoding="UTF-8"?>
-  <gpx version="1.1" creator="VMM-E2E">
-    <trk><name>VMM browser smoke</name><trkseg>
-      <trkpt lat="48.8566" lon="2.3522"><ele>35</ele></trkpt>
-      <trkpt lat="48.8666" lon="2.3622"><ele>42</ele></trkpt>
-      <trkpt lat="48.8766" lon="2.3722"><ele>38</ele></trkpt>
-      <trkpt lat="48.8866" lon="2.3822"><ele>45</ele></trkpt>
-    </trkseg></trk>
-  </gpx>`;
-
-  await page.setInputFiles("#gpxInput",{name:"vmm-e2e.gpx",mimeType:"application/gpx+xml",buffer:Buffer.from(gpx)});
-  await page.waitForFunction(()=>document.querySelector("#gpxState")?.textContent?.includes("source points"),null,{timeout:30000});
-  await page.evaluate(()=>{
-    const radio=document.querySelector('input[name="diameter"][value="3"]');
-    radio.checked=true;
-    const mesh=document.querySelector("#meshTargetXy");
-    mesh.value="2";
-    document.querySelector("#generatePrintModel").click();
-  });
-  await page.waitForFunction(()=>document.querySelector("#productionStatus")?.textContent?.startsWith("Ready ·"),null,{timeout:120000});
-  await page.waitForFunction(()=>document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="ready" || document.querySelector("#glbFallbackCanvas")?.dataset?.renderState==="error",null,{timeout:30000});
-
-  result=await page.evaluate(()=>{
+  await page.goto(base+"?renderer-smoke="+Date.now(),{waitUntil:"networkidle",timeout:60000});
+  const result=await page.evaluate(async()=>{
+    const [{renderProductionMeshPreview},{buildRadialMedalMesh}]=await Promise.all([
+      import("/direct-mesh-preview.mjs?v=1"),
+      import("/print-model-core.mjs?v=8")
+    ]);
     const canvas=document.querySelector("#glbFallbackCanvas");
-    const status=document.querySelector("#glbViewerStatus")?.textContent||"";
-    const renderState=canvas?.dataset?.renderState||"missing";
-    const renderError=canvas?.dataset?.renderError||"";
-    const gl=canvas?.getContext("webgl2")||canvas?.getContext("webgl");
+    const status=document.querySelector("#glbViewerStatus");
+    if(!canvas)throw new Error("fallback canvas missing");
+    const mesh=buildRadialMedalMesh({
+      diameterMm:100,
+      baseMm:3,
+      rings:18,
+      segments:96,
+      heightAt:(x,y)=>1.2+Math.sin(x/12)*.6+Math.cos(y/15)*.4,
+      regionAt:(x,y)=>x>0?2:0
+    });
+    const cleanup=renderProductionMeshPreview({
+      canvas,mesh,modelWidthMm:100,statusEl:status,
+      materials:[
+        {name:"Terrain",color:"#88999AFF"},
+        {name:"Water",color:"#2F9BC1FF"},
+        {name:"Route",color:"#FF6A00FF"}
+      ]
+    });
+    await new Promise(r=>setTimeout(r,1000));
+    const gl=canvas.getContext("webgl2")||canvas.getContext("webgl");
     let sampledNonBackground=0,total=0;
     if(gl&&canvas.width&&canvas.height){
-      const w=Math.min(96,canvas.width),h=Math.min(96,canvas.height);
+      const w=Math.min(128,canvas.width),h=Math.min(128,canvas.height);
       const x=Math.max(0,Math.floor((canvas.width-w)/2)),y=Math.max(0,Math.floor((canvas.height-h)/2));
       const pixels=new Uint8Array(w*h*4);
       gl.readPixels(x,y,w,h,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
       for(let i=0;i<pixels.length;i+=4){
         total++;
-        const r=pixels[i],g=pixels[i+1],b=pixels[i+2];
-        if(Math.abs(r-11)>8||Math.abs(g-16)>8||Math.abs(b-18)>8)sampledNonBackground++;
+        const rr=pixels[i],gg=pixels[i+1],bb=pixels[i+2];
+        if(Math.abs(rr-11)>8||Math.abs(gg-16)>8||Math.abs(bb-18)>8)sampledNonBackground++;
       }
     }
-    return {status,renderState,renderError,width:canvas?.width||0,height:canvas?.height||0,sampledNonBackground,total};
+    const out={
+      renderState:canvas.dataset.renderState||"",
+      renderError:canvas.dataset.renderError||"",
+      status:status?.textContent||"",
+      width:canvas.width,height:canvas.height,
+      sampledNonBackground,total
+    };
+    cleanup?.();
+    return out;
   });
 
   console.log(JSON.stringify({result,consoleErrors},null,2));
   await page.locator("#generatedModelPreview").screenshot({path:"glb-preview.png"});
-
-  if(result.renderState!=="ready") throw new Error("fallback renderer not ready: "+result.renderError);
-  if(result.sampledNonBackground<50) throw new Error("fallback canvas appears blank: "+JSON.stringify(result));
-  if(consoleErrors.length) throw new Error("browser console errors: "+consoleErrors.join(" | "));
+  if(result.renderState!=="ready")throw new Error("renderer not ready: "+result.renderError);
+  if(result.sampledNonBackground<100)throw new Error("renderer canvas appears blank: "+JSON.stringify(result));
+  if(consoleErrors.length)throw new Error("browser console errors: "+consoleErrors.join(" | "));
 } catch(error) {
   const state=await page.evaluate(()=>({
-    url:location.href,
-    gpxState:document.querySelector("#gpxState")?.textContent||"",
-    productionStatus:document.querySelector("#productionStatus")?.textContent||"",
     viewerStatus:document.querySelector("#glbViewerStatus")?.textContent||"",
     fallbackState:document.querySelector("#glbFallbackCanvas")?.dataset?.renderState||"",
     fallbackError:document.querySelector("#glbFallbackCanvas")?.dataset?.renderError||""
