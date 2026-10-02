@@ -1,18 +1,17 @@
 import { EVENTS, MAPS, PRINTERS, ROUTE_STYLES, VIEWER_LIMITS, adaptivePlaceLabelBudget, adaptiveRoadRenderBudget, adaptiveWaterCells, balanceBoundsForMapContext, eventNameFromGpxFilename, expandBoundsByDistanceKm, expandBoundsByMargin, formatDuration, formatRouteDistance, gpxStatsLine, inferEventPresetFromFilename, makeJob, mapContextBounds, mapContextLabel, mapFrameSize, medalCoverageBounds, medalDiameterMm, nextViewerZoom, normalizeElevationRange, parseGpxText, mergeGpxRoutes, sampleTerrariumBilinear, physicalReliefMm, placeLabelFontSize, productionDiameterMm, projectGpxPoints, routePreviewLift, routeShadowWidthForExaggeration, routeStyleGeometry, routeWidthMultiplierForExaggeration, roadPrintPolicy, selectPrintPlaces, validateLocalFileMeta, validateDesign, viewerBoundsFromZoom } from "./terrain-medal-core.mjs?v=17";
 import { compileCartography, decodeCartographyTile, isPointInWater, selectScreenPlacesSpatially } from "./vector-map-core.mjs?v=8";
 import { CONTINENTS, buildMedalMetaLines } from "./event-discovery-core.mjs?v=4";
-import { buildAnnulusMesh, buildCylinderMesh, buildDisplayStandMesh, buildDovetailKeyMesh, buildExtrudedPolygonMesh, buildPrintValidationCoupon, buildRadialMedalMesh, buildRectangularHeightfieldMesh, encodeArtifactZip, encodeBinaryStl, encodeGlb, encodeMtl, encodeObj, encode3mf, mergeMeshes, meshEdgeUse, productionResolution, validateProductionProfile } from "./print-model-core.mjs?v=8";
+import { buildAnnulusMesh, buildCylinderMesh, buildDisplayStandMesh, buildDovetailKeyMesh, buildExtrudedPolygonMesh, buildPrintValidationCoupon, buildRadialMedalMesh, buildRectangularHeightfieldMesh, encodeArtifactZip, encodeBinaryStl, encodeGlb, encodeMtl, encodeObj, encode3mf, mergeMeshes, meshEdgeUse, productionResolution, validateProductionProfile } from "./print-model-core.mjs?v=7";
 import { alignmentSocketDepth, contourEmbossHeight, dovetailKeyProfile, dovetailSlotDepth, magnetPocketDepth, parseArcAsciiGrid, planTiledMap, pointInsideShape, rasterSampler, sampleArcAsciiGrid, shapeBoundaryRadius, shapeMaxRadius } from "./fabrication-extras-core.mjs?v=3";
 import { adaptiveLargeFormatPlan, classifyTerrainWorkload, clipPolygonToRect, loadGeoTiffArrayBuffer, reconcileGpxElevations, rasterStats } from "./pro-dem-core.mjs?v=2";
 import { projectGeographicOutline, insidePolygons, maskPolygons, buildOutlineHeightfieldMesh, logoFootprint, footprintFits, findEmptyLogoPlacement } from "./map-outline-core.mjs?v=1";
-import { renderProductionMeshPreview as renderProductionMeshPreviewDirect } from "./direct-mesh-preview.mjs?v=2";
 
 const $ = (id) => document.getElementById(id);
 const fields = { event: $("eventSelect"), eventName: $("eventName"), eventDate:$("eventDate"), eventLocation:$("eventLocation"), participant: $("participant"), bib: $("bib"), distance: $("distance"), startDetail:$("startDetail"), finishDetail:$("finishDetail"), elapsedTime:$("elapsedTime"), resultStatus:$("resultStatus"), placing:$("placing"), map: $("mapSelect"), printer: $("printerSelect"), exaggeration: $("exaggeration"), reliefLimit: $("reliefLimit"), waterMode: $("waterMode"), waveHeight: $("waveHeight"), wavelength: $("wavelength"), base: $("base"), routeWidth: $("routeWidth"), routeRise: $("routeRise") };
 const framingSelect=$("framingSelect"),terrainExtentMode=$("terrainExtentMode"),routeBufferKm=$("routeBufferKm"),printMargin=$("printMargin"),printMarginOut=$("printMarginOut"),printAreaState=$("printAreaState");
 const geoContinent=$("geoContinent"),geoCountry=$("geoCountry"),geoRegion=$("geoRegion"),geoCity=$("geoCity"),terrainEnvironment=$("terrainEnvironment"),geoSearchButton=$("geoSearchButton"),geoSearchStatus=$("geoSearchStatus"),geoResults=$("geoResults");
 const eventWebSearch=$("eventWebSearch"),eventWebCategory=$("eventWebCategory"),eventWebSearchButton=$("eventWebSearchButton"),eventWebStatus=$("eventWebStatus"),eventWebResults=$("eventWebResults"),publicResultUrl=$("publicResultUrl"),importPublicResult=$("importPublicResult"),publicResultStatus=$("publicResultStatus"),participantMatches=$("participantMatches");
-const generatePrintModel=$("generatePrintModel"),download3mf=$("download3mf"),downloadStl=$("downloadStl"),downloadObj=$("downloadObj"),downloadGlb=$("downloadGlb"),downloadValidationBundle=$("downloadValidationBundle"),downloadStandStl=$("downloadStandStl"),downloadTilePlan=$("downloadTilePlan"),downloadPrintPackage=$("downloadPrintPackage"),productionStatus=$("productionStatus"),printerProfileNote=$("printerProfileNote"),printerProfileSource=$("printerProfileSource"),glbViewer=$("glbViewer"),glbFallbackCanvas=$("glbFallbackCanvas"),glbViewerStatus=$("glbViewerStatus"),issueAuthenticity=$("issueAuthenticity"),downloadAuthenticity=$("downloadAuthenticity"),authenticityStatus=$("authenticityStatus"),verifyAuthenticityLink=$("verifyAuthenticityLink");
+const generatePrintModel=$("generatePrintModel"),download3mf=$("download3mf"),downloadStl=$("downloadStl"),downloadObj=$("downloadObj"),downloadGlb=$("downloadGlb"),downloadValidationBundle=$("downloadValidationBundle"),downloadStandStl=$("downloadStandStl"),downloadTilePlan=$("downloadTilePlan"),downloadPrintPackage=$("downloadPrintPackage"),productionStatus=$("productionStatus"),printerProfileNote=$("printerProfileNote"),printerProfileSource=$("printerProfileSource"),glbViewer=$("glbViewer"),glbViewerStatus=$("glbViewerStatus"),issueAuthenticity=$("issueAuthenticity"),downloadAuthenticity=$("downloadAuthenticity"),authenticityStatus=$("authenticityStatus"),verifyAuthenticityLink=$("verifyAuthenticityLink");
 const shapeSelect=$("shapeSelect"),shapeAspect=$("shapeAspect"),modelWidthMm=$("modelWidthMm"),routeStyle=$("routeStyle"),contourEnabled=$("contourEnabled"),contourInterval=$("contourInterval"),contourRise=$("contourRise"),magnetEnabled=$("magnetEnabled"),magnetDiameter=$("magnetDiameter"),magnetDepth=$("magnetDepth"),magnetSpacing=$("magnetSpacing"),hangingLoopEnabled=$("hangingLoopEnabled"),loopInnerDiameter=$("loopInnerDiameter"),loopWall=$("loopWall"),bottomMark=$("bottomMark"),bottomEngraveDepth=$("bottomEngraveDepth"),logoInput=$("logoInput"),logoRise=$("logoRise"),heightmapInput=$("heightmapInput"),heightmapStrength=$("heightmapStrength"),standEnabled=$("standEnabled"),tileEnabled=$("tileEnabled"),tileMaxWidth=$("tileMaxWidth"),tileMaxHeight=$("tileMaxHeight"),tileJointType=$("tileJointType"),tileJointDiameter=$("tileJointDiameter"),tileJointDepth=$("tileJointDepth"),tileJointClearance=$("tileJointClearance"),elevationSource=$("elevationSource"),openTopoDataset=$("openTopoDataset"),openTopoKey=$("openTopoKey"),loadHighResDem=$("loadHighResDem"),fabricationStatus=$("fabricationStatus");
 const placeLabelMode=$("placeLabelMode"),placeSelectionList=$("placeSelectionList");
 const localDemInput=$("localDemInput"),geoTiffInput=$("geoTiffInput"),geoTiffCrs=$("geoTiffCrs"),demFillNoData=$("demFillNoData"),demSmoothRadius=$("demSmoothRadius"),meshTargetXy=$("meshTargetXy"),routeElevationMode=$("routeElevationMode"),routeElevationBlend=$("routeElevationBlend"),routeElevationBlendOut=$("routeElevationBlendOut"),trailsEnabled=$("trailsEnabled"),railwaysEnabled=$("railwaysEnabled"),buildingsEnabled=$("buildingsEnabled"),terrainColor=$("terrainColor"),waterColor=$("waterColor"),routeColor=$("routeColor"),roadsColor=$("roadsColor"),labelsColor=$("labelsColor"),trailsColor=$("trailsColor"),railwaysColor=$("railwaysColor"),buildingsColor=$("buildingsColor");
@@ -39,7 +38,7 @@ function logoUv(x,y,c){
   return {u:.5+(dx*Math.cos(a)+dy*Math.sin(a))/(2*half),v:.5-(-dx*Math.sin(a)+dy*Math.cos(a))*o.aspect/(2*half)};
 }
 const MODEL_VIEWER_LOCAL="/vendor/model-viewer.min.js?v=4.3.1";
-let glbViewerRuntime=null,glbFallbackCleanup=null;
+let glbViewerRuntime=null;
 
 async function ensureGlbViewerComponent(){
   if(customElements.get("model-viewer"))return "registered";
@@ -57,28 +56,15 @@ async function ensureGlbViewerComponent(){
   return glbViewerRuntime;
 }
 
-async function renderProductionMeshPreview(mesh,materials,modelWidthMm=101.6){
-  if(!glbFallbackCanvas)return false;
-  if(glbFallbackCleanup){try{glbFallbackCleanup()}catch{}glbFallbackCleanup=null}
-  glbFallbackCleanup=renderProductionMeshPreviewDirect({
-    canvas:glbFallbackCanvas,
-    mesh,
-    materials,
-    modelWidthMm,
-    statusEl:glbViewerStatus
-  });
-  return true;
-}
-
-
 if(glbViewer){
+  glbViewer.addEventListener("load",()=>{
+    glbViewerStatus.textContent="GLB rendered · exact governed export is visible. Drag to orbit, wheel/pinch to zoom; AR is available where supported.";
+  });
   glbViewer.addEventListener("error",event=>{
-    if(glbFallbackCanvas?.dataset?.renderState==="ready")return;
     const detail=event?.detail?.type||event?.detail?.message||"model load error";
-    glbViewerStatus.textContent=`AR viewer failed · ${detail}. Desktop preview state: ${glbFallbackCanvas?.dataset?.renderState||"unknown"}.`;
+    glbViewerStatus.textContent=`GLB viewer failed · ${detail}. The downloadable GLB remains available.`;
   });
 }
-
 
 function printPlaceBudget(c,mode=placeLabelMode?.value||"major"){
   if(mode==="none")return 0;
@@ -134,7 +120,7 @@ function invalidateProductionModel(message="Print model changed. Generate again 
   if(downloadAuthenticity)downloadAuthenticity.disabled=true;
   if(verifyAuthenticityLink){verifyAuthenticityLink.hidden=true;verifyAuthenticityLink.removeAttribute("href")}
   if(authenticityStatus)authenticityStatus.textContent="Generate a print model, then issue a signed receipt to prove that its export manifest came from the canonical VYNDI service.";
-  if(glbViewerUrl){URL.revokeObjectURL(glbViewerUrl);glbViewerUrl=null} if(glbFallbackCleanup){try{glbFallbackCleanup()}catch{}glbFallbackCleanup=null}
+  if(glbViewerUrl){URL.revokeObjectURL(glbViewerUrl);glbViewerUrl=null}
   if(glbViewer){glbViewer.removeAttribute("src");glbViewerStatus.textContent="Generate a print model to inspect the exact exported GLB."}
   if(productionStatus&&terrain&&frameBounds)productionStatus.textContent=message;
 }
@@ -1032,10 +1018,10 @@ async function generateProductionModel(){
     issueAuthenticity.disabled=false;authenticityReceipt=null;downloadAuthenticity.disabled=true;verifyAuthenticityLink.hidden=true;authenticityStatus.textContent="Model ready · issue a signed VYNDI authenticity receipt to bind these export hashes to the canonical service.";
     if(glbViewerUrl)URL.revokeObjectURL(glbViewerUrl);
     glbViewerUrl=URL.createObjectURL(new Blob([glb],{type:"model/gltf-binary"}));
-    try{await renderProductionMeshPreview(mesh,materials,diameterMm)}catch{}
     if(glbViewer){
       try{
         const viewerSource=await ensureGlbViewerComponent();
+        glbViewerStatus.textContent=`Rendering governed GLB · viewer ${viewerSource===MODEL_VIEWER_LOCAL?"local":"pinned fallback"}…`;
         glbViewer.src=glbViewerUrl;
       }catch(error){
         glbViewerStatus.textContent=`GLB viewer failed · ${error.message} The downloadable GLB remains available.`;
