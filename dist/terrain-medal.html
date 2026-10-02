@@ -6,7 +6,7 @@
   <title>My Road — My Glory · Terrain Medal · Powered by VYNDI Ride Stories</title>
   <meta name="description" content="My Road — My Glory Terrain Medal, powered by VYNDI Ride Stories — raise your real route into a physical terrain memento."><link rel="canonical" href="https://vmm.vayushastr.workers.dev/terrain-medal">
   <meta name="theme-color" content="#030504">
-  <link rel="icon" href="assets/vayu-official.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="terrain-medal.css?v=20261001-ui-audit-4"><link rel="stylesheet" href="my-road-my-glory-theme.css?v=20261001-ui-audit-4">
+  <link rel="icon" href="assets/vayu-official.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="terrain-medal.css?v=20261002-workbench-1"><link rel="stylesheet" href="my-road-my-glory-theme.css?v=20261001-ui-audit-4">
   <link rel="stylesheet" href="/vyndi-typography.css?v=20261001-readable-2">
 </head>
 <body class="vayu-corporate terrain-medal-app" data-readable="true">
@@ -23,7 +23,9 @@
 
     <section class="workspace">
       <form class="controls" id="medalForm">
-        <fieldset class="global-discovery"><legend>00 · Global event & terrain</legend>
+        <section class="workbench-center-top" aria-label="Location, event and rider identity">
+          <div class="workbench-zone-heading"><span>DISCOVER</span><strong>Location, event & identity</strong><small>Find the place or event, then confirm the rider and custom details.</small></div>
+          <fieldset class="global-discovery"><legend>00 · Global event & terrain</legend>
           <p class="hint">Search any public geography first, with or without a GPX. Event and participant discovery can then add factual metadata when public sources expose it.</p>
           <label>Continent<select id="geoContinent"></select></label>
           <div class="pair"><label>Country<input id="geoCountry" placeholder="e.g. India, France, Australia"></label><label>State / region<input id="geoRegion" placeholder="e.g. Tamil Nadu, Brittany"></label></div>
@@ -57,8 +59,11 @@
           <div class="pair"><label>Elapsed / official time<input id="elapsedTime" maxlength="28"></label><label>Status<input id="resultStatus" maxlength="24" placeholder="Finished / DNF / etc."></label></div>
           <label>Placing / rank<input id="placing" maxlength="18"></label>
         </fieldset>
+        </section>
 
-        <fieldset><legend>02 · Map and terrain</legend>
+        <aside class="workbench-left-rail" aria-label="Terrain and fabrication adjustments">
+          <div class="workbench-zone-heading"><span>ADJUST</span><strong>Terrain & fabrication</strong><small>Shape the map, relief, route and fabrication details.</small></div>
+          <fieldset><legend>02 · Map and terrain</legend>
           <label>Saved map<select id="mapSelect"></select></label>
           <label class="file">GPX route(s)<input id="gpxInput" type="file" multiple accept=".gpx,application/gpx+xml,application/xml,text/xml"><span id="gpxState">Choose one or more GPX files</span></label>
           <label>Map framing<select id="framingSelect"><option value="event-focus">Event focus</option><option value="regional-context">Regional context</option><option value="view-crop">Current zoom crop</option></select></label>
@@ -71,17 +76,7 @@
           <div class="pair"><label>Wave relief <output id="waveHeightOut">0.30 mm</output><input id="waveHeight" type="range" min="0.1" max="0.5" step="0.05" value="0.3"></label><label>Wave spacing <output id="wavelengthOut">2.6 mm</output><input id="wavelength" type="range" min="1.6" max="5" step="0.2" value="2.6"></label></div>
           <p class="hint" id="terrainSource">Terrain source</p>
         </fieldset>
-
-        <fieldset><legend>03 · Medal and production</legend>
-          <div class="segmented"><label><input type="radio" name="diameter" value="3"><span>3″ · 76.2 mm</span></label><label><input type="radio" name="diameter" value="4" checked><span>4″ · 101.6 mm</span></label></div>
-          <label>Printer / production profile<select id="printerSelect"></select></label>
-          <div class="pair"><label>Physical width override (mm)<input id="modelWidthMm" type="number" min="0" max="600" step="1" value="0" placeholder="0 = selected medal size"></label><label>Base thickness (mm)<input id="base" type="number" min="1.5" max="10" step="0.1" value="3.2"></label></div>
-          <div class="pair"><label>Route style<select id="routeStyle"><option value="raised">Raised</option><option value="engraved">Engraved</option><option value="inlay">Flush inlay</option><option value="color">Colour only</option><option value="none">No route</option></select></label><label>Route width (mm)<input id="routeWidth" type="number" min="0.3" max="5" step="0.1" value="1.2"></label></div>
-          <label>Route height / depth (mm)<input id="routeRise" type="number" min="0.2" max="3" step="0.1" value="1"></label>
-          <p class="hint production-note"><span id="printerProfileNote">Select a 3D production profile to generate a watertight print model.</span> <a id="printerProfileSource" href="#" target="_blank" rel="noopener">Manufacturer specification ↗</a> · minimum feature and emboss values are VYNDI production recommendations.</p>
-        </fieldset>
-
-        <details class="advanced-controls"><summary>Advanced fabrication · logo, labels, layers and DEM</summary>
+          <details class="advanced-controls"><summary>Advanced fabrication · logo, labels, layers and DEM</summary>
         <fieldset class="fabrication-extras"><legend>04 · Fabrication extras</legend>
           <label>Medal / map shape<select id="shapeSelect"><option value="circle">Circle</option><option value="geographic">Selected country / region outline</option><option value="square">Square</option><option value="ellipse">Ellipse</option><option value="hexagon">Hexagon</option><option value="octagon">Octagon</option><option value="heart">Heart</option></select></label>
           <p class="hint" id="outlineStatus" aria-live="polite">Search and select a country or region above, then choose its outline. Islands remain separate pieces.</p>
@@ -145,8 +140,19 @@
           <p class="hint" id="fabricationStatus">Fabrication extras are applied only to generated STL/3MF. OpenTopography keys are sent only with the requested DEM call and are not stored. Personal/commercial use must follow OpenTopography API terms; commercial software integration may require an Enterprise API key.</p>
         </fieldset>
         </details>
+        </aside>
 
-        <div class="status-card" id="statusCard"><strong id="statusTitle">READY FOR CONFIGURATION</strong><p id="statusText">The preview uses representative relief until an authoritative DEM mesh is generated.</p></div>
+        <aside class="workbench-right-rail" aria-label="Print and production controls">
+          <div class="workbench-zone-heading"><span>PRODUCE</span><strong>Print & output</strong><small>Choose physical size, printer profile and governed exports.</small></div>
+          <fieldset><legend>03 · Medal and production</legend>
+          <div class="segmented"><label><input type="radio" name="diameter" value="3"><span>3″ · 76.2 mm</span></label><label><input type="radio" name="diameter" value="4" checked><span>4″ · 101.6 mm</span></label></div>
+          <label>Printer / production profile<select id="printerSelect"></select></label>
+          <div class="pair"><label>Physical width override (mm)<input id="modelWidthMm" type="number" min="0" max="600" step="1" value="0" placeholder="0 = selected medal size"></label><label>Base thickness (mm)<input id="base" type="number" min="1.5" max="10" step="0.1" value="3.2"></label></div>
+          <div class="pair"><label>Route style<select id="routeStyle"><option value="raised">Raised</option><option value="engraved">Engraved</option><option value="inlay">Flush inlay</option><option value="color">Colour only</option><option value="none">No route</option></select></label><label>Route width (mm)<input id="routeWidth" type="number" min="0.3" max="5" step="0.1" value="1.2"></label></div>
+          <label>Route height / depth (mm)<input id="routeRise" type="number" min="0.2" max="3" step="0.1" value="1"></label>
+          <p class="hint production-note"><span id="printerProfileNote">Select a 3D production profile to generate a watertight print model.</span> <a id="printerProfileSource" href="#" target="_blank" rel="noopener">Manufacturer specification ↗</a> · minimum feature and emboss values are VYNDI production recommendations.</p>
+        </fieldset>
+          <div class="status-card" id="statusCard"><strong id="statusTitle">READY FOR CONFIGURATION</strong><p id="statusText">The preview uses representative relief until an authoritative DEM mesh is generated.</p></div>
         <div class="production-card">
           <strong>PRINT MODEL</strong>
           <p id="productionStatus">Not generated. Terrain, GPX, major roads, governed place labels and event text will be converted into physical relief.</p>
@@ -158,6 +164,7 @@
         </div>
 
         <div class="actions"><a class="preview-jump" href="#generatedModelPreview">Inspect generated model ↓</a><button type="button" id="resetView">Reset view</button><button type="button" id="downloadJob">Export production JSON</button></div>
+        </aside>
       </form>
 
       <section class="preview-panel">
