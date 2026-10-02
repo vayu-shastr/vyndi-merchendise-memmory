@@ -9,7 +9,7 @@ const html=readFileSync(new URL("../dist/terrain-medal.html",import.meta.url),"u
 test("late corporate theme preserves the three-zone Terrain Medal workbench",()=>{
   assert.match(theme,/Terrain Medal three-zone compatibility lock/);
   assert.match(theme,/body\.terrain-medal-app \.workspace\{[\s\S]*grid-template-columns:minmax\(260px,330px\) minmax\(520px,1fr\) minmax\(280px,360px\)/);
-  assert.match(theme,/body\\.terrain-medal-app \\.controls\\{[\\s\\S]*?display:contents/);
+  assert.match(theme,/body\.terrain-medal-app \.controls\{[\s\S]*?display:contents/);
   assert.match(theme,/body\.terrain-medal-app \.workbench-center-top\{grid-column:2;grid-row:1/);
   assert.match(theme,/body\.terrain-medal-app \.preview-panel\{grid-column:2;grid-row:2/);
   assert.match(theme,/body\.terrain-medal-app \.workbench-left-rail\{grid-column:1;grid-row:1 \/ span 2/);
