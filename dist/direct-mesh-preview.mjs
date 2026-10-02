@@ -118,8 +118,11 @@ export function renderProductionMeshPreview({canvas,mesh,materials,modelWidthMm=
   canvas.dataset.renderError="";
 
   let renderer,controls,geometry,materialList=[],resizeObserver,frame=0,disposed=false;
+  const webglContext=canvas.getContext("webgl2",{antialias:true,alpha:false,powerPreference:"high-performance"})
+    || canvas.getContext("webgl",{antialias:true,alpha:false,powerPreference:"high-performance"});
+  if(!webglContext)return renderSoftwarePreview({canvas,mesh,materials,modelWidthMm,statusEl});
   try{
-    renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:"high-performance"});
+    renderer=new THREE.WebGLRenderer({canvas,context:webglContext,antialias:true,alpha:false,powerPreference:"high-performance"});
     renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,2));
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
