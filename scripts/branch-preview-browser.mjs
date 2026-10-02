@@ -10,7 +10,8 @@ page.on("console",msg=>{if(msg.type()==="error")errors.push(msg.text())});
 page.on("pageerror",err=>errors.push(String(err)));
 
 try{
-  await page.goto(url,{waitUntil:"networkidle",timeout:30000});
+  const targetUrl=url+(url.includes("?")?"&":"?")+(disableWebgl?"dense=1":"dense=0");
+  await page.goto(targetUrl,{waitUntil:"networkidle",timeout:30000});
   await page.waitForFunction(()=>["ready","error"].includes(document.querySelector("#preview")?.dataset?.renderState),null,{timeout:30000});
   await page.waitForTimeout(1000);
 
