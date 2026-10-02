@@ -249,17 +249,16 @@ test("GLB viewer runtime is local-only and never falls back to a third-party CDN
   assert.doesNotMatch(js,/cdn\.jsdelivr\.net|unpkg\.com|ajax\.googleapis\.com/);
 });
 
-test("desktop preview reports direct production-mesh state while AR viewer errors remain observable",()=>{
+test("desktop preview uses the proven local model-viewer runtime from VYNDI Ride Stories",()=>{
   const js=readFileSync(new URL("../dist/terrain-medal.js",import.meta.url),"utf8");
-  const preview=readFileSync(new URL("../dist/direct-mesh-preview.mjs",import.meta.url),"utf8");
-  assert.match(js,/renderProductionMeshPreview/);
-  assert.match(preview,/dataset\.renderState="loading"/);
-  assert.match(preview,/dataset\.renderState="ready"/);
-  assert.match(preview,/dataset\.renderState="error"/);
-  assert.match(preview,/3D preview active/);
-  assert.match(preview,/3D preview failed/);
-  assert.match(js,/addEventListener\(["']error["']/);
-  assert.match(js,/AR viewer failed/);
+  const html=readFileSync(new URL("../dist/terrain-medal.html",import.meta.url),"utf8");
+  assert.match(html,/<model-viewer id="glbViewer" camera-controls/);
+  assert.doesNotMatch(html,/glbFallbackCanvas|glb-viewer-stage/);
+  assert.doesNotMatch(js,/renderProductionMeshPreview|direct-mesh-preview\.mjs/);
+  assert.match(js,/glbViewer\.addEventListener\(["']load["']/);
+  assert.match(js,/glbViewer\.addEventListener\(["']error["']/);
+  assert.match(js,/GLB rendered · exact governed export is visible/);
+  assert.match(js,/glbViewer\.src=glbViewerUrl/);
 });
 
 
