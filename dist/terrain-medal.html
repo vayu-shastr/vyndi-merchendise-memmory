@@ -6,7 +6,7 @@
   <title>My Road — My Glory · Terrain Medal · Powered by VYNDI Ride Stories</title>
   <meta name="description" content="My Road — My Glory Terrain Medal, powered by VYNDI Ride Stories — raise your real route into a physical terrain memento."><link rel="canonical" href="https://vmm.vayushastr.workers.dev/terrain-medal">
   <meta name="theme-color" content="#030504">
-  <link rel="icon" href="assets/vayu-official.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="terrain-medal.css?v=20261002-workbench-1"><link rel="stylesheet" href="my-road-my-glory-theme.css?v=20261002-workbench-lock-1">
+  <link rel="icon" href="assets/vayu-official.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="terrain-medal.css?v=20261002-centerbar-1"><link rel="stylesheet" href="my-road-my-glory-theme.css?v=20261002-centerbar-1">
   <link rel="stylesheet" href="/vyndi-typography.css?v=20261001-readable-2">
 </head>
 <body class="vayu-corporate terrain-medal-app" data-readable="true">
@@ -24,41 +24,68 @@
     <section class="workspace">
       <form class="controls" id="medalForm">
         <section class="workbench-center-top" aria-label="Location, event and rider identity">
-          <div class="workbench-zone-heading"><span>DISCOVER</span><strong>Location, event & identity</strong><small>Find the place or event, then confirm the rider and custom details.</small></div>
-          <fieldset class="global-discovery"><legend>00 · Global event & terrain</legend>
-          <p class="hint">Search any public geography first, with or without a GPX. Event and participant discovery can then add factual metadata when public sources expose it.</p>
-          <label>Continent<select id="geoContinent"></select></label>
-          <div class="pair"><label>Country<input id="geoCountry" placeholder="e.g. India, France, Australia"></label><label>State / region<input id="geoRegion" placeholder="e.g. Tamil Nadu, Brittany"></label></div>
-          <div class="pair"><label>City / area<input id="geoCity" placeholder="e.g. Ooty, Brest, Lake Tahoe"></label><label>Terrain environment<select id="terrainEnvironment"><option value="auto">Auto / mixed</option><option value="land">Land</option><option value="coastal">Coastal</option><option value="water">Water / lake / sea</option><option value="mountain">Mountain</option><option value="desert">Desert</option><option value="urban">Urban</option></select></label></div>
-          <button type="button" class="discovery-action" id="geoSearchButton">Search global geography</button>
-          <p class="hint discovery-status" id="geoSearchStatus">Choose a continent/country/state/city or type any named area.</p>
-          <div class="discovery-results" id="geoResults" aria-live="polite"></div>
+          <div class="center-command-row center-command-row-primary">
+            <span class="center-command-row-label">DISCOVER</span>
 
-          <div class="discovery-divider"></div>
-          <div class="pair"><label>Find event<input id="eventWebSearch" type="search" placeholder="UTMB, Boston Marathon, Paris-Brest-Paris…"></label><label>Sport<select id="eventWebCategory"><option value="all">Any sport</option><option value="cycling">Cycling</option><option value="marathon">Marathon / road running</option><option value="ultra">Ultra running</option><option value="triathlon">Triathlon</option><option value="trail">Trail / XC</option><option value="swimming">Open-water / swimming</option><option value="rowing">Rowing / paddling</option><option value="sailing">Sailing / regatta</option><option value="motorsport">Motorsport / rally</option><option value="winter">Winter / snow</option><option value="adventure">Hiking / adventure</option><option value="other">Other</option></select></label></div>
-          <button type="button" class="discovery-action" id="eventWebSearchButton">Search public event sources</button>
-          <p class="hint discovery-status" id="eventWebStatus">Uses the current geography filters plus Wikidata/Wikipedia discovery. Confirm the exact edition before production.</p>
-          <div class="discovery-results" id="eventWebResults" aria-live="polite"></div>
+            <details class="center-command-menu">
+              <summary>Location & terrain</summary>
+              <div class="center-command-menu-panel">
+                <label>Continent<select id="geoContinent"></select></label>
+                <div class="pair"><label>Country<input id="geoCountry" placeholder="e.g. India, France, Australia"></label><label>State / region<input id="geoRegion" placeholder="e.g. Tamil Nadu, Brittany"></label></div>
+                <div class="pair"><label>City / area<input id="geoCity" placeholder="e.g. Ooty, Brest, Lake Tahoe"></label><label>Terrain environment<select id="terrainEnvironment"><option value="auto">Auto / mixed</option><option value="land">Land</option><option value="coastal">Coastal</option><option value="water">Water / lake / sea</option><option value="mountain">Mountain</option><option value="desert">Desert</option><option value="urban">Urban</option></select></label></div>
+                <button type="button" class="discovery-action" id="geoSearchButton">Search global geography</button>
+                <p class="hint discovery-status" id="geoSearchStatus">Choose a continent/country/state/city or type any named area.</p>
+                <div class="discovery-results" id="geoResults" aria-live="polite"></div>
+              </div>
+            </details>
 
-        </fieldset>
+            <details class="center-command-menu">
+              <summary>Event finder</summary>
+              <div class="center-command-menu-panel">
+                <div class="pair"><label>Find event<input id="eventWebSearch" type="search" placeholder="UTMB, Boston Marathon, Paris-Brest-Paris…"></label><label>Sport<select id="eventWebCategory"><option value="all">Any sport</option><option value="cycling">Cycling</option><option value="marathon">Marathon / road running</option><option value="ultra">Ultra running</option><option value="triathlon">Triathlon</option><option value="trail">Trail / XC</option><option value="swimming">Open-water / swimming</option><option value="rowing">Rowing / paddling</option><option value="sailing">Sailing / regatta</option><option value="motorsport">Motorsport / rally</option><option value="winter">Winter / snow</option><option value="adventure">Hiking / adventure</option><option value="other">Other</option></select></label></div>
+                <button type="button" class="discovery-action" id="eventWebSearchButton">Search public event sources</button>
+                <p class="hint discovery-status" id="eventWebStatus">Uses the current geography filters plus Wikidata/Wikipedia discovery. Confirm the exact edition before production.</p>
+                <div class="discovery-results" id="eventWebResults" aria-live="polite"></div>
+              </div>
+            </details>
 
-        <fieldset><legend>01 · Event and rider</legend>
-          <label>Saved event<select id="eventSelect"></select></label>
-          <label>Event name<input id="eventName" maxlength="54"></label>
-          <div class="pair"><label>Event date<input id="eventDate" type="date"></label><label>Event location<input id="eventLocation" maxlength="64" placeholder="City, state/region, country"></label></div>
-          <div class="pair"><label>Participant<input id="participant" maxlength="42" placeholder="Participant / rider name"></label><label>Bib / rider no.<input id="bib" maxlength="24" placeholder="Bib / rider no."></label></div>
-          <div class="participant-lookup">
-            <p class="hint participant-sequence"><strong>Rider lookup:</strong> type the name and/or bib → Find participant → choose the correct result row.</p>
-            <label>Official / public results source<input id="publicResultUrl" type="url" placeholder="Loaded automatically for supported events, or paste a public results URL"></label>
-            <button type="button" class="discovery-action" id="importPublicResult">Find participant</button>
-            <p class="hint discovery-status" id="publicResultStatus">Your name and bib stay editable until you choose a matching rider result.</p>
-            <div class="discovery-results participant-matches" id="participantMatches" aria-live="polite"></div>
+            <details class="center-command-menu">
+              <summary>Event details</summary>
+              <div class="center-command-menu-panel">
+                <label>Saved event<select id="eventSelect"></select></label>
+                <label>Event name<input id="eventName" maxlength="54"></label>
+                <div class="pair"><label>Event date<input id="eventDate" type="date"></label><label>Event location<input id="eventLocation" maxlength="64" placeholder="City, state/region, country"></label></div>
+              </div>
+            </details>
           </div>
-          <label>Distance<input id="distance" maxlength="24"></label>
-          <div class="pair"><label>Start detail<input id="startDetail" maxlength="40" placeholder="Time / checkpoint"></label><label>Finish / completion<input id="finishDetail" maxlength="40" placeholder="Time / completion"></label></div>
-          <div class="pair"><label>Elapsed / official time<input id="elapsedTime" maxlength="28"></label><label>Status<input id="resultStatus" maxlength="24" placeholder="Finished / DNF / etc."></label></div>
-          <label>Placing / rank<input id="placing" maxlength="18"></label>
-        </fieldset>
+
+          <div class="center-command-row center-command-row-secondary">
+            <span class="center-command-row-label">RIDER</span>
+
+            <details class="center-command-menu">
+              <summary>Rider lookup</summary>
+              <div class="center-command-menu-panel">
+                <div class="pair"><label>Participant<input id="participant" maxlength="42" placeholder="Participant / rider name"></label><label>Bib / rider no.<input id="bib" maxlength="24" placeholder="Bib / rider no."></label></div>
+                <div class="participant-lookup">
+                  <p class="hint participant-sequence"><strong>Rider lookup:</strong> type the name and/or bib → Find participant → choose the correct result row.</p>
+                  <label>Official / public results source<input id="publicResultUrl" type="url" placeholder="Loaded automatically for supported events, or paste a public results URL"></label>
+                  <button type="button" class="discovery-action" id="importPublicResult">Find participant</button>
+                  <p class="hint discovery-status" id="publicResultStatus">Your name and bib stay editable until you choose a matching rider result.</p>
+                  <div class="discovery-results participant-matches" id="participantMatches" aria-live="polite"></div>
+                </div>
+              </div>
+            </details>
+
+            <details class="center-command-menu">
+              <summary>Ride result</summary>
+              <div class="center-command-menu-panel">
+                <label>Distance<input id="distance" maxlength="24"></label>
+                <div class="pair"><label>Start detail<input id="startDetail" maxlength="40" placeholder="Time / checkpoint"></label><label>Finish / completion<input id="finishDetail" maxlength="40" placeholder="Time / completion"></label></div>
+                <div class="pair"><label>Elapsed / official time<input id="elapsedTime" maxlength="28"></label><label>Status<input id="resultStatus" maxlength="24" placeholder="Finished / DNF / etc."></label></div>
+                <label>Placing / rank<input id="placing" maxlength="18"></label>
+              </div>
+            </details>
+          </div>
         </section>
 
         <aside class="workbench-left-rail" aria-label="Terrain and fabrication adjustments">

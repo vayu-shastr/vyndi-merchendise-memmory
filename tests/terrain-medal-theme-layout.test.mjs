@@ -8,7 +8,7 @@ const html=readFileSync(new URL("../dist/terrain-medal.html",import.meta.url),"u
 
 test("late corporate theme preserves the three-zone Terrain Medal workbench",()=>{
   assert.match(theme,/Terrain Medal three-zone compatibility lock/);
-  assert.match(theme,/body\.terrain-medal-app \.workspace\{[\s\S]*grid-template-columns:minmax\(260px,330px\) minmax\(520px,1fr\) minmax\(280px,360px\)/);
+  assert.match(theme,/body\.terrain-medal-app \.workspace\{[\s\S]*grid-template-columns:minmax\(210px,250px\) minmax\(0,1fr\) minmax\(230px,280px\)/);
   assert.match(theme,/body\.terrain-medal-app \.controls\{[\s\S]*?display:contents/);
   assert.match(theme,/body\.terrain-medal-app \.workbench-center-top\{grid-column:2;grid-row:1/);
   assert.match(theme,/body\.terrain-medal-app \.preview-panel\{grid-column:2;grid-row:2/);
@@ -16,12 +16,14 @@ test("late corporate theme preserves the three-zone Terrain Medal workbench",()=
   assert.match(theme,/body\.terrain-medal-app \.workbench-right-rail\{grid-column:3;grid-row:1 \/ span 2/);
 });
 
-test("center stack exposes discovery, live concept view and GLB AR inspection in order",()=>{
-  const discover=html.indexOf('class="workbench-center-top"');
+test("center stack exposes two-row command bar, live concept view and GLB AR inspection in order",()=>{
+  const command=html.indexOf('class="workbench-center-top"');
+  const primary=html.indexOf('class="center-command-row center-command-row-primary"',command);
+  const secondary=html.indexOf('class="center-command-row center-command-row-secondary"',command);
   const preview=html.indexOf('class="preview-panel"');
   const canvas=html.indexOf('id="medalCanvas"',preview);
   const glb=html.indexOf('id="generatedModelPreview"',preview);
-  assert.ok(discover>=0&&preview>discover&&canvas>preview&&glb>canvas);
+  assert.ok(command>=0&&primary>command&&secondary>primary&&preview>secondary&&canvas>preview&&glb>canvas);
   assert.match(terrain,/\.workbench-center-top\{grid-column:2/);
   assert.match(terrain,/\.preview-panel\{grid-column:2;grid-row:2/);
 });
