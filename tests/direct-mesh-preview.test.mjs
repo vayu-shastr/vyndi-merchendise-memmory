@@ -6,7 +6,7 @@ const app=readFileSync(new URL("../dist/terrain-medal.js",import.meta.url),"utf8
 const preview=readFileSync(new URL("../dist/direct-mesh-preview.mjs",import.meta.url),"utf8");
 
 test("desktop preview renders the in-memory production mesh, not by reparsing the GLB",()=>{
-  assert.match(app,/direct-mesh-preview\.mjs\?v=1/);
+  assert.match(app,/direct-mesh-preview\.mjs\?v=2/);
   assert.match(app,/renderProductionMeshPreviewDirect/);
   assert.match(app,/await renderProductionMeshPreview\(mesh,materials,diameterMm\)/);
   assert.doesNotMatch(app,/await renderGlbFallback\(glb,diameterMm\)/);
@@ -14,6 +14,9 @@ test("desktop preview renders the in-memory production mesh, not by reparsing th
   assert.match(preview,/geometry\.setAttribute\("position"/);
   assert.match(preview,/geometry\.computeVertexNormals\(\)/);
   assert.match(preview,/geometry\.addGroup\(/);
+  assert.match(preview,/renderSoftwarePreview/);
+  assert.match(preview,/dataset\.renderMode="software-2d"/);
+  assert.match(preview,/WebGL is unavailable/);
 });
 
 test("preview exposes explicit runtime state and native AR events cannot mask fallback failure",()=>{

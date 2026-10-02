@@ -19,10 +19,10 @@ jobs:
           import time, urllib.request, sys
 
           base="https://vmm.vayushastr.workers.dev"
-          expected_html="terrain-medal.js?v=35"
+          expected_html="terrain-medal.js?v=36"
           expected_core="print-model-core.mjs?v=8"
           expected_fallback="three-glb-viewer.mjs"
-          expected_preview="direct-mesh-preview.mjs?v=1"
+          expected_preview="direct-mesh-preview.mjs?v=2"
 
           def get(url):
               req=urllib.request.Request(url,headers={"User-Agent":"VMM-Production-Smoke/1.0","Cache-Control":"no-cache"})
@@ -33,9 +33,9 @@ jobs:
           for _ in range(12):
               try:
                   hs,html=get(base+"/terrain-medal?smoke="+str(time.time_ns()))
-                  js,script=get(base+"/terrain-medal.js?v=35&smoke="+str(time.time_ns()))
+                  js,script=get(base+"/terrain-medal.js?v=36&smoke="+str(time.time_ns()))
                   vs,vendor=get(base+"/vendor/three-glb-viewer.mjs?smoke="+str(time.time_ns()))
-                  ps,preview=get(base+"/direct-mesh-preview.mjs?v=1&smoke="+str(time.time_ns()))
+                  ps,preview=get(base+"/direct-mesh-preview.mjs?v=2&smoke="+str(time.time_ns()))
                   if hs==200 and js==200 and vs==200 and ps==200 and expected_html in html and expected_core in script and expected_preview in script and "renderProductionMeshPreview" in preview and len(vendor)>1000:
                       print("LIVE PASS: deployed Terrain Medal bundle is current")
                       print(expected_html)
