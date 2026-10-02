@@ -1,9 +1,7 @@
 import { chromium } from "playwright";
 
 const url=process.env.PREVIEW_URL||"http://127.0.0.1:8765/tests/fixtures/direct-mesh-preview.html";
-const disableWebgl=process.env.DISABLE_WEBGL==="1";
-const launchArgs=disableWebgl?["--disable-webgl","--disable-gpu"]:["--use-gl=swiftshader","--enable-webgl","--ignore-gpu-blocklist"];
-const browser=await chromium.launch({headless:true,args:launchArgs});
+const browser=await chromium.launch({headless:true,args:["--use-gl=swiftshader","--enable-webgl","--ignore-gpu-blocklist"]});
 const page=await browser.newPage({viewport:{width:1200,height:760}});
 const errors=[];
 page.on("console",msg=>{if(msg.type()==="error")errors.push(msg.text())});
@@ -15,33 +13,24 @@ try{
   await page.waitForTimeout(1000);
 
   const result=await page.evaluate(()=>{
-    const canvas=document.querySelector("#preview");
-    const state=canvas?.dataset?.renderState||"missing";
-    const error=canvas?.dataset?.renderError||"";
-    let changed=0,total=0,mode=canvas?.dataset?.renderMode||"";
-    const w=Math.min(180,canvas?.width||0),h=Math.min(120,canvas?.height||0);
-    const x=Math.max(0,Math.floor(((canvas?.width||0)-w)/2));
-    const y=Math.max(0,Math.floor(((canvas?.height||0)-h)/2));
-    if(mode==="software-2d"){
-      const ctx=canvas.getContext("2d");
-      if(ctx&&w&&h){
-        const pixels=ctx.getImageData(x,y,w,h).data;
-        for(let i=0;i<pixels.length;i+=4){total++;const r=pixels[i],g=pixels[i+1],b=pixels[i+2];if(Math.abs(r-11)>10||Math.abs(g-16)>10||Math.abs(b-18)>10)changed++;}
-      }
-    }else{
-      const gl=canvas?.getContext("webgl2")||canvas?.getContext("webgl");
-      if(gl&&w&&h){
-        const pixels=new Uint8Array(w*h*4);gl.readPixels(x,y,w,h,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
-        for(let i=0;i<pixels.length;i+=4){total++;const r=pixels[i],g=pixels[i+1],b=pixels[i+2];if(Math.abs(r-11)>10||Math.abs(g-16)>10||Math.abs(b-18)>10)changed++;}
-      }
-    }
-    return {state,error,mode,width:canvas?.width||0,height:canvas?.height||0,changed,total,status:document.querySelector("#status")?.textContent||""};
+    const preview=document.querySelector("#preview");
+    const dimensions=typeof preview?.getDimensions==="function"?preview.getDimensions():null;
+    return {
+      state:preview?.dataset?.renderState||"missing",
+      error:preview?.dataset?.renderError||"",
+      loaded:Boolean(preview?.loaded),
+      visible:Boolean(preview?.modelIsVisible),
+      dimensions:dimensions?{x:Number(dimensions.x)||0,y:Number(dimensions.y)||0,z:Number(dimensions.z)||0}:null,
+      status:document.querySelector("#status")?.textContent||""
+    };
   });
 
   console.log(JSON.stringify({result,errors},null,2));
   await page.locator("#stage").screenshot({path:"direct-mesh-preview.png"});
-  if(result.state!=="ready")throw new Error("renderer state "+result.state+": "+result.error);
-  if(result.changed<250)throw new Error("canvas appears blank: "+JSON.stringify(result));
+  if(result.state!=="ready")throw new Error("model-viewer state "+result.state+": "+result.error);
+  if(!result.loaded)throw new Error("model-viewer did not report loaded");
+  if(!result.visible)throw new Error("model-viewer did not report modelIsVisible");
+  if(result.dimensions&&Math.max(result.dimensions.x,result.dimensions.y,result.dimensions.z)<=0)throw new Error("model-viewer dimensions are empty");
   if(errors.length)throw new Error("browser console errors: "+errors.join(" | "));
 }finally{
   await browser.close();

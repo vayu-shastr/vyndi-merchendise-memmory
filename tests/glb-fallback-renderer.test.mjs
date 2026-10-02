@@ -5,14 +5,12 @@ import { readFileSync } from "node:fs";
 const builder=readFileSync(new URL("../scripts/build-vendor.mjs",import.meta.url),"utf8");
 const html=readFileSync(new URL("../dist/terrain-medal.html",import.meta.url),"utf8");
 const app=readFileSync(new URL("../dist/terrain-medal.js",import.meta.url),"utf8");
-const preview=readFileSync(new URL("../dist/direct-mesh-preview.mjs",import.meta.url),"utf8");
 
-test("Terrain Medal ships a local Three.js production-mesh preview renderer",()=>{
-  assert.match(builder,/three-glb-viewer\.mjs/);
-  assert.match(builder,/OrbitControls/);
-  assert.match(html,/id="glbFallbackCanvas"/);
-  assert.match(app,/direct-mesh-preview\.mjs/);
-  assert.match(preview,/OrbitControls/);
-  assert.match(preview,/renderProductionMeshPreview/);
-  assert.match(app,/glbFallbackCanvas/);
+test("Terrain Medal ships the original self-hosted model-viewer runtime",()=>{
+  assert.match(builder,/model-viewer\.min\.js/);
+  assert.doesNotMatch(builder,/three-glb-viewer\.mjs/);
+  assert.match(html,/<model-viewer id="glbViewer"/);
+  assert.doesNotMatch(html,/glbFallbackCanvas/);
+  assert.match(app,/const MODEL_VIEWER_LOCAL="\/vendor\/model-viewer\.min\.js\?v=4\.3\.1"/);
+  assert.doesNotMatch(app,/direct-mesh-preview\.mjs/);
 });
