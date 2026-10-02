@@ -41,7 +41,9 @@ try{
   console.log(JSON.stringify({result,errors},null,2));
   await page.locator("#stage").screenshot({path:"direct-mesh-preview.png"});
   if(result.state!=="ready")throw new Error("renderer state "+result.state+": "+result.error);
+  const coverage=result.total?result.changed/result.total:0;
   if(result.changed<250)throw new Error("canvas appears blank: "+JSON.stringify(result));
+  if(disableWebgl&&coverage<0.72)throw new Error("software surface is too sparse: coverage="+coverage.toFixed(3)+" "+JSON.stringify(result));
   if(errors.length)throw new Error("browser console errors: "+errors.join(" | "));
 }finally{
   await browser.close();

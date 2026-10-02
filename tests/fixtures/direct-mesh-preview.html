@@ -16,20 +16,25 @@ html,body{margin:0;background:#050707;color:white;font-family:Arial,sans-serif}
 <script type="module">
 import { renderProductionMeshPreview } from "/dist/direct-mesh-preview.mjs?v=2";
 
-const mesh={
-  vertices:[
-    {x:-50,y:-40,z:0},{x:50,y:-40,z:0},{x:50,y:40,z:0},{x:-50,y:40,z:0},
-    {x:-50,y:-40,z:5},{x:50,y:-40,z:9},{x:50,y:40,z:14},{x:-50,y:40,z:7}
-  ],
-  triangles:[
-    {a:4,b:5,c:6,region:0},{a:4,b:6,c:7,region:0},
-    {a:0,b:2,c:1,region:1},{a:0,b:3,c:2,region:1},
-    {a:0,b:1,c:5,region:0},{a:0,b:5,c:4,region:0},
-    {a:1,b:2,c:6,region:0},{a:1,b:6,c:5,region:0},
-    {a:2,b:3,c:7,region:0},{a:2,b:7,c:6,region:0},
-    {a:3,b:0,c:4,region:0},{a:3,b:4,c:7,region:0}
-  ]
-};
+const vertices=[],triangles=[];
+const nx=180,ny=140,width=100,height=78;
+for(let y=0;y<=ny;y++){
+  for(let x=0;x<=nx;x++){
+    const px=-width/2+(x/nx)*width,py=-height/2+(y/ny)*height;
+    const r=Math.hypot(px,py);
+    const z=4+2.8*Math.exp(-(r*r)/900)+1.1*Math.sin(px/9)*Math.cos(py/11);
+    vertices.push({x:px,y:py,z});
+  }
+}
+const row=nx+1;
+for(let y=0;y<ny;y++){
+  for(let x=0;x<nx;x++){
+    const a=y*row+x,b=a+1,c=a+row,d=c+1;
+    const region=(x>nx*.43&&x<nx*.57)?2:0;
+    triangles.push({a,b,c:d,region},{a,c:d,c,region});
+  }
+}
+const mesh={vertices,triangles};
 const materials=[
   {name:"Terrain",color:"#6A7B7CFF"},
   {name:"Base",color:"#20282AFF"}
